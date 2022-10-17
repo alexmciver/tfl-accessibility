@@ -6,13 +6,19 @@ export const fetchTFL = async () => {
         const xml = parser.parseFromString(data, "application/xml");
         console.log(xml);
 
-            var x, i, txt;
+            var x, i, j, accessibilityLevel, txt, txt2;
             txt = "";
+            txt2 = "";
             x = xml.getElementsByTagName('StationName');
+            accessibilityLevel = xml.getElementsByTagName('AccessibilityType');
             for (i = 0 ; i <x.length; i++) {
                 txt += x[i].childNodes[0].nodeValue + "<br>";
             }
-            document.getElementById("demo").innerHTML = txt;
+           for (j = 0 ; j <accessibilityLevel.length; j++) {
+                txt2 += accessibilityLevel[j].childNodes[0].nodeValue + "<br>";
+           }
+            document.getElementById("column1").innerHTML = txt;
+            document.getElementById("column2").innerHTML = txt2;
       })
       .catch(console.error);
   };
