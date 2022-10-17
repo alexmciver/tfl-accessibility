@@ -17,8 +17,8 @@ export const fetchTFL = async () => {
            for (j = 0 ; j <accessibilityLevel.length; j++) {
                 txt2 += accessibilityLevel[j].childNodes[0].nodeValue + "<br>";
            }
-            document.getElementById("column1").innerHTML = txt;
-            document.getElementById("column2").innerHTML = txt2;
+            document.getElementById("column1-inner").innerHTML = txt;
+            document.getElementById("column2-inner").innerHTML = txt2;
       })
       .catch(console.error);
   };
