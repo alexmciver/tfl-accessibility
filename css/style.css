@@ -166,6 +166,7 @@ span {
     font-size: 14px; /* Font size */
     padding: 8px 12px; /* Padding for better touch targets */
     transition: background-color 0.3s, color 0.3s; /* Smooth transition for hover effects */
+    justify-content: flex-end;
 }
 
 #reset-button:hover {
@@ -176,4 +177,19 @@ span {
 #reset-button i {
     font-size: 16px; /* Icon size */
     margin-right: 5px; /* Space between icon and text */
+}
+
+#plan-route {
+    background-color: #0056b3; /* Darker blue for better contrast */
+    color: #ffffff; /* White text */
+    border: none; /* No border */
+    padding: 12px 20px; /* Padding for better touch targets */
+    border-radius: 4px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor */
+    font-size: 16px; /* Font size */
+    transition: background-color 0.3s; /* Smooth transition */
+}
+
+#plan-route:hover {
+    background-color: #004494; /* Even darker blue on hover */
 }
