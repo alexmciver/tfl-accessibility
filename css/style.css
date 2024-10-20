@@ -154,3 +154,26 @@ span {
 #overlay.hidden {
     display: none; /* Class to hide the overlay */
 }
+
+#reset-button {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa; /* Light background for a subtle look */
+    border: 1px solid #ced4da; /* Light border */
+    border-radius: 4px; /* Slightly rounded corners */
+    color: #495057; /* Darker gray color for text */
+    cursor: pointer; /* Pointer cursor */
+    font-size: 14px; /* Font size */
+    padding: 8px 12px; /* Padding for better touch targets */
+    transition: background-color 0.3s, color 0.3s; /* Smooth transition for hover effects */
+}
+
+#reset-button:hover {
+    background: #e2e6ea; /* Slightly darker background on hover */
+    color: #212529; /* Darker text color on hover */
+}
+
+#reset-button i {
+    font-size: 16px; /* Icon size */
+    margin-right: 5px; /* Space between icon and text */
+}

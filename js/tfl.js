@@ -34,6 +34,9 @@ export const fetchTFL = async () => {
       overlay.classList.add("hidden"); // Hide the overlay by adding the hidden class
     });
 
+    // Add event listener for the reset button
+    document.getElementById("reset-button").addEventListener("click", resetSelections);
+
   } catch (error) {
     console.error('Error fetching station data:', error);
     alert(`Failed to load station data. Error: ${error.message}`);
@@ -68,6 +71,27 @@ const planRoute = () => {
     mapContainer.style.display = "none"; // Hide the map container
     overlay.classList.remove("hidden"); // Show the overlay by removing the hidden class
   }
+};
+
+// Function to reset selections and hide overlay
+const resetSelections = () => {
+  const startStationSelect = document.getElementById("start-station");
+  const endStationSelect = document.getElementById("end-station");
+  const overlay = document.getElementById("overlay");
+
+  // Reset the dropdowns
+  startStationSelect.selectedIndex = 0; // Assuming the first option is a placeholder
+  endStationSelect.selectedIndex = 0; // Assuming the first option is a placeholder
+
+  // Clear accessibility information
+  document.getElementById("start-accessibility").textContent = '';
+  document.getElementById("end-accessibility").textContent = '';
+
+  // Hide the map container
+  document.getElementById("map-container").style.display = "none"; // Hide the map container
+
+  // Show the overlay
+  overlay.classList.remove("hidden"); // Show the overlay
 };
 
 // Call the function to fetch data
