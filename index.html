@@ -10,16 +10,19 @@
 <body>
     <h1>TFL Accessibility</h1>
     <section>
-       <div id="column1">
-           <h3>Station Name</h3>
-           <div id="column1-inner"></div>
-       </div>
-       <div id="column2">
-          <h3>Accessibility Type</h3>
-          <div id="column2-inner"></div>
-       </div>
+        <label for="start-station">Start Station:</label>
+        <select id="start-station"></select>
+        <span id="start-accessibility"></span>
+        <label for="end-station">End Station:</label>
+        <select id="end-station"></select>
+        <span id="end-accessibility"></span>
+        <button id="plan-route">Show Route</button>
     </section>
-   
+    <div id="map-container">
+        <iframe id="map" frameborder="0" style="border:0" allowfullscreen></iframe>
+    </div>
+    <div id="loading-spinner" style="display: none;">Loading...</div>
+    <script type="module" src="js/tfl.js"></script>
 </body>
 <script src="js/index.js" type="module"></script>
 </html>
