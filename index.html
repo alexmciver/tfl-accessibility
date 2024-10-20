@@ -8,20 +8,32 @@
     <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-    <h1>TFL Accessibility</h1>
-    <section>
-        <label for="start-station">Start Station:</label>
-        <select id="start-station"></select>
-        <span id="start-accessibility"></span>
-        <label for="end-station">End Station:</label>
-        <select id="end-station"></select>
-        <span id="end-accessibility"></span>
-        <button id="plan-route">Show Route</button>
-    </section>
-    <div id="map-container">
-        <iframe id="map" frameborder="0" style="border:0" allowfullscreen></iframe>
-    </div>
-    <div id="loading-spinner" style="display: none;">Loading...</div>
+    <header>
+        <h1>TFL Accessibility</h1>
+    </header>
+    <main>
+        <section>
+            <label for="start-station">Start Station:</label>
+            <select id="start-station" aria-label="Select start station"></select>
+            <span id="start-accessibility" aria-live="polite"></span>
+            
+            <label for="end-station">End Station:</label>
+            <select id="end-station" aria-label="Select end station"></select>
+            <span id="end-accessibility" aria-live="polite"></span>
+            
+            <button id="plan-route" aria-label="Show route">Show Route</button>
+        </section>
+        <div id="map-container" aria-label="Map showing the route">
+            <iframe id="map" frameborder="0" style="border:0" allowfullscreen></iframe>
+        </div>
+        <div id="loading-spinner" style="display: none;" aria-live="assertive">Loading...</div>
+        <div id="overlay">
+            <div class="overlay-content">
+                <h2>Please select a route</h2>
+                <p>Choose a start and end station to view the route on the map.</p>
+            </div>
+        </div>
+    </main>
     <script type="module" src="js/tfl.js"></script>
 </body>
 <script src="js/index.js" type="module"></script>
