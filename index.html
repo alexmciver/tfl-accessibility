@@ -11,9 +11,12 @@
 <body>
     <header>
         <h1>TFL Accessibility</h1>
-        <label for="dark-mode-toggle" style="margin-left: 20px;">
+        <label class="switch" style="margin-left: 20px;">
             <input type="checkbox" id="dark-mode-toggle" aria-label="Toggle dark mode" />
-            Dark Mode
+            <span class="slider">
+                <i class="fas fa-sun" id="sun-icon" style="display: none;"></i>
+                <i class="fas fa-moon" id="moon-icon"></i>
+            </span>
         </label>
     </header>
     <main>

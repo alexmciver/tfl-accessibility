@@ -7,6 +7,46 @@ const startStationSelect = document.getElementById("start-station");
 const endStationSelect = document.getElementById("end-station");
 const mapContainer = document.getElementById("map-container");
 const overlay = document.getElementById("overlay");
+const darkModeToggle = document.getElementById("dark-mode-toggle");
+const sunIcon = document.getElementById("sun-icon");
+const moonIcon = document.getElementById("moon-icon");
+
+// Function to apply dark mode based on preference
+const applyDarkMode = (isDarkMode) => {
+    const header = document.querySelector('header'); // Get the header element
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        header.classList.add('dark-mode'); // Add dark mode class to header
+        moonIcon.style.display = "none"; // Hide moon icon
+        sunIcon.style.display = "inline"; // Show sun icon
+        darkModeToggle.checked = true; // Set the toggle to checked
+    } else {
+        document.body.classList.remove('dark-mode');
+        header.classList.remove('dark-mode'); // Remove dark mode class from header
+        moonIcon.style.display = "inline"; // Show moon icon
+        sunIcon.style.display = "none"; // Hide sun icon
+        darkModeToggle.checked = false; // Set the toggle to unchecked
+    }
+};
+
+// Check localStorage for the user's preference or use system preference
+const darkModePreference = localStorage.getItem('darkMode');
+if (darkModePreference === 'enabled') {
+    applyDarkMode(true);
+} else if (darkModePreference === 'disabled') {
+    applyDarkMode(false);
+} else {
+    // Check system preference
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyDarkMode(systemPrefersDark);
+}
+
+// Event listener for the toggle
+darkModeToggle.addEventListener('change', () => {
+    const isChecked = darkModeToggle.checked;
+    applyDarkMode(isChecked);
+    localStorage.setItem('darkMode', isChecked ? 'enabled' : 'disabled'); // Save preference
+});
 
 export const fetchTFL = async () => {
   loadingSpinner.style.display = "block"; // Show spinner

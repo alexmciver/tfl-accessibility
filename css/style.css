@@ -7,10 +7,19 @@ body {
   background-color: #f4f4f4; /* Light gray background for a softer look */
 }
 
+/* Light Mode Header Styles */
 header {
-  background-color: #007bff; /* Header background color */
-  color: white; /* Header text color */
-  padding: 20px 0; /* Padding for header */
+    background-color: #007bff; /* Light mode background color */
+    color: white; /* Light mode text color */
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Dark Mode Header Styles */
+header.dark-mode {
+    background-color: #1e1e1e; /* Dark mode background color */
+    color: white; /* Dark mode text color */
 }
 
 h1 {
@@ -200,10 +209,6 @@ body.dark-mode {
     color: #ffffff; /* Light text color */
 }
 
-header.dark-mode {
-    background-color: #1e1e1e; /* Dark header background */
-}
-
 section.dark-mode {
     background-color: #1e1e1e; /* Dark section background */
     color: #ffffff; /* Light text color */
@@ -219,3 +224,67 @@ button.dark-mode:hover {
 }
 
 /* Add more dark mode styles as needed */
+
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 80px; /* Increased width for better visibility */
+    height: 40px; /* Increased height for better touch targets */
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px; /* Rounded corners */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 32px; /* Increased height for the knob */
+    width: 32px; /* Increased width for the knob */
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%; /* Circular knob */
+}
+
+input:checked + .slider {
+    background-color: #007bff; /* Change background color when checked */
+}
+
+input:checked + .slider:before {
+    transform: translateX(40px); /* Move the knob to the right */
+}
+
+/* Optional: Style for icons */
+.slider i {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px; /* Increased icon size for better visibility */
+}
+
+#sun-icon {
+    left: 10px; /* Position for sun icon */
+    color: white; /* Dark mode icon color */
+}
+
+#moon-icon {
+    right: 10px; /* Position for moon icon */
+    display: none; /* Initially hide moon icon */
+}
