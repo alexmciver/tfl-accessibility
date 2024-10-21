@@ -1,51 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TFL Accessibility</title>
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TFL Accessibility</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <header>
-        <h1>TFL Accessibility</h1>
-        <label class="switch" style="margin-left: 20px;">
-            <input type="checkbox" id="dark-mode-toggle" aria-label="Toggle dark mode" />
-            <span class="slider">
-                <i class="fas fa-sun" id="sun-icon" style="display: none;"></i>
-                <i class="fas fa-moon" id="moon-icon"></i>
-            </span>
-        </label>
-    </header>
-    <main>
-        <section>
-            <label for="start-station">Start Station:</label>
-            <select id="start-station" aria-label="Select start station"></select>
-            <span id="start-accessibility" aria-live="polite"></span>
-            
-            <label for="end-station">End Station:</label>
-            <select id="end-station" aria-label="Select end station"></select>
-            <span id="end-accessibility" aria-live="polite"></span>
-            
-            <button id="plan-route" aria-label="Show route">Show Route</button>
-            <button id="reset-button" aria-label="Reset selections">
-                <i class="fas fa-undo" style="margin-right: 5px;"></i> Reset route
-            </button>
-        </section>
-        <div id="map-container" aria-label="Map showing the route">
-            <iframe id="map" frameborder="0" style="border:0" allowfullscreen></iframe>
-        </div>
-        <div id="loading-spinner" style="display: none;" aria-live="assertive">Loading...</div>
-        <div id="overlay">
-            <div class="overlay-content">
-                <h2>Please select a route</h2>
-                <p>Choose a start and end station to view the route on the map.</p>
-            </div>
-        </div>
-    </main>
-    <script type="module" src="js/tfl.js"></script>
+  <header>
+    <img src="assets/images/tfl-accessibilty-logo.jpg" alt="TFL Logo" />
+    <label class="switch" style="margin-left: 20px;">
+      <input type="checkbox" id="dark-mode-toggle" aria-label="Toggle dark mode" />
+      <span class="slider">
+        <i class="fas fa-sun" id="sun-icon" style="display: none;"></i>
+        <i class="fas fa-moon" id="moon-icon"></i>
+      </span>
+    </label>
+  </header>
+  <main>
+    <section>
+      <label for="start-station">Start Station:</label>
+      <select id="start-station" aria-label="Select start station"></select>
+      <span id="start-accessibility" aria-live="polite"></span>
+      
+      <label for="end-station">End Station:</label>
+      <select id="end-station" aria-label="Select end station"></select>
+      <span id="end-accessibility" aria-live="polite"></span>
+      
+      <button id="plan-route" aria-label="Show route">Show Route</button>
+      <button id="reset-button" aria-label="Reset selections">
+        <i class="fas fa-undo" style="margin-right: 5px;"></i> Reset route
+      </button>
+    </section>
+    <div id="map-container" aria-label="Map showing the route">
+      <iframe id="map" frameborder="0" style="border:0" allowfullscreen></iframe>
+    </div>
+    <div id="loading-spinner" style="display: none;" aria-live="assertive">Loading...</div>
+    <div id="overlay">
+      <div class="overlay-content">
+        <h2>Please select a route</h2>
+        <p>Choose a start and end station to view the route on the map.</p>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="js/tfl.js"></script>
 </body>
 <script src="js/index.js" type="module"></script>
 </html>
