@@ -1,5 +1,3 @@
-import {
-    fetchTFL,
-} from './tfl.js';
+import { fetchTFL } from './tfl.js';
 
 fetchTFL();

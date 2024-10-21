@@ -193,3 +193,29 @@ span {
 #plan-route:hover {
     background-color: #004494; /* Even darker blue on hover */
 }
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: #121212; /* Dark background */
+    color: #ffffff; /* Light text color */
+}
+
+header.dark-mode {
+    background-color: #1e1e1e; /* Dark header background */
+}
+
+section.dark-mode {
+    background-color: #1e1e1e; /* Dark section background */
+    color: #ffffff; /* Light text color */
+}
+
+button.dark-mode {
+    background-color: #007bff; /* Button color */
+    color: white; /* Button text color */
+}
+
+button.dark-mode:hover {
+    background-color: #0056b3; /* Darker button color on hover */
+}
+
+/* Add more dark mode styles as needed */
