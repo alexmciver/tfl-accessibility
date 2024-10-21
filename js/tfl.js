@@ -53,6 +53,13 @@ const planRoute = () => {
   const mapContainer = document.getElementById("map-container");
   const overlay = document.getElementById("overlay");
 
+
+  // Check if start and end stations are the same
+  if (start === end) {
+    alert("Please select different stations for the start and end points.");
+    return;
+  }
+
   // Display accessibility information
   const startAccessibility = stationData[start] || 'N/A';
   const endAccessibility = stationData[end] || 'N/A';
