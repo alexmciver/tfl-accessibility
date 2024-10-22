@@ -11,8 +11,9 @@ body {
 header {
     background-color: #007bff; /* Light mode background color */
     color: white; /* Light mode text color */
-    padding: 20px;
+    padding: 0 20px;
     display: flex;
+    align-items: center;
     justify-content: space-between;
 }
 
@@ -34,6 +35,7 @@ main {
   flex-direction: column;
   align-items: center;
   padding: 20px; /* Padding for main content */
+  padding-top: 70px;
 }
 
 /* Section Styles */
@@ -287,4 +289,38 @@ input:checked + .slider:before {
 #moon-icon {
     right: 10px; /* Position for moon icon */
     display: none; /* Initially hide moon icon */
+}
+
+/* Logo Styles */
+.logo {
+    height: 125px; /* Set the height of the logo */
+    width: auto; /* Maintain aspect ratio */
+}
+
+/* Custom focus styles */
+button:focus, 
+select:focus {
+    outline: 2px solid #0056b3; /* Custom focus outline */
+    outline-offset: 2px; /* Space between the outline and the element */
+}
+
+/* Ensure focus is visible on the logo if needed */
+.logo:focus {
+    outline: 2px solid #0056b3; /* Custom focus outline for logo */
+}
+
+.skip-link {
+    position: absolute;
+    top: -40px; /* Move off-screen */
+    left: 10px;
+    background-color: #007bff; /* Background color */
+    color: white; /* Text color */
+    padding: 8px 12px; /* Padding */
+    border-radius: 4px; /* Rounded corners */
+    transition: top 0.3s; /* Smooth transition */
+    z-index: 1000; /* Ensure it appears above other content */
+}
+
+.skip-link:focus {
+    top: 10px; /* Move into view when focused */
 }
