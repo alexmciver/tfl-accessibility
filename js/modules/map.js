@@ -7,19 +7,30 @@ export class MapService {
         this.directionsService = null;
         this.directionsRenderer = null;
         this.map = null;
-        this.loadGoogleMapsScript();
+        this.isLoaded = false;
     }
 
-    loadGoogleMapsScript() {
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
+    async loadGoogleMapsScript() {
+        if (this.isLoaded) return;
+
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
+            script.async = true;
+            script.defer = true;
+            script.onload = () => {
+                this.isLoaded = true;
+                resolve();
+            };
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
     }
 
-    initialize(mapElement) {
+    async initialize(mapElement) {
         try {
+            await this.loadGoogleMapsScript();
+
             if (!window.google || !window.google.maps) {
                 throw new Error('Google Maps not loaded');
             }

@@ -3,12 +3,19 @@ import { StationService } from './modules/stations.js';
 import { UIService } from './modules/ui.js';
 import { handleError, ErrorTypes } from './utils/errorHandler.js';
 import { elements } from './utils/domUtils.js';
+import { debounce } from './utils/debounce.js';
 
 class TFLService {
     constructor() {
         this.mapService = new MapService();
         this.stationService = new StationService();
         this.uiService = new UIService();
+        
+        // Debounce route planning to prevent excessive API calls
+        this.debouncedPlanRoute = debounce(
+            this.handlePlanRoute.bind(this),
+            300
+        );
     }
 
     async initialize() {
@@ -26,9 +33,14 @@ class TFLService {
     }
 
     setupEventListeners() {
-        document.getElementById("plan-route").addEventListener("click", () => this.handlePlanRoute());
-        elements.overlay.addEventListener("click", () => this.uiService.hideOverlay());
-        document.getElementById("reset-button").addEventListener("click", () => this.handleReset());
+        document.getElementById("plan-route")
+            .addEventListener("click", () => this.debouncedPlanRoute());
+        
+        elements.overlay
+            .addEventListener("click", () => this.uiService.hideOverlay());
+        
+        document.getElementById("reset-button")
+            .addEventListener("click", () => this.handleReset());
     }
 
     async handlePlanRoute() {

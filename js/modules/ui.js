@@ -1,12 +1,37 @@
 import { elements } from '../utils/domUtils.js';
 
 export class UIService {
+    constructor() {
+        this.pendingUpdates = new Set();
+        this.frameRequested = false;
+    }
+
+    scheduleUpdate(element, update) {
+        this.pendingUpdates.add({ element, update });
+        if (!this.frameRequested) {
+            this.frameRequested = true;
+            requestAnimationFrame(() => this.flushUpdates());
+        }
+    }
+
+    flushUpdates() {
+        this.pendingUpdates.forEach(({ element, update }) => update(element));
+        this.pendingUpdates.clear();
+        this.frameRequested = false;
+    }
+
     showLoadingSpinner() {
-        elements.loadingSpinner.style.display = "block";
+        this.scheduleUpdate(
+            elements.loadingSpinner,
+            el => el.style.display = "block"
+        );
     }
 
     hideLoadingSpinner() {
-        elements.loadingSpinner.style.display = "none";
+        this.scheduleUpdate(
+            elements.loadingSpinner,
+            el => el.style.display = "none"
+        );
     }
 
     hideOverlay() {
@@ -14,9 +39,12 @@ export class UIService {
     }
 
     resetUI() {
-        this.resetSelections();
-        this.resetAccessibilityInfo();
-        this.resetMapDisplay();
+        // Batch DOM updates
+        requestAnimationFrame(() => {
+            this.resetSelections();
+            this.resetAccessibilityInfo();
+            this.resetMapDisplay();
+        });
     }
 
     resetSelections() {

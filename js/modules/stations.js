@@ -4,19 +4,54 @@ import { elements } from '../utils/domUtils.js';
 export class StationService {
     constructor() {
         this.stationData = {};
+        this.CACHE_KEY = 'tfl_station_data';
+        this.CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     }
 
     async fetchStationData() {
         try {
+            // Check cache first
+            const cachedData = this.getFromCache();
+            if (cachedData) {
+                this.stationData = cachedData;
+                return cachedData;
+            }
+
             const response = await fetch('./stations.json');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            this.stationData = await response.json();
-            return this.stationData;
+            
+            const data = await response.json();
+            this.stationData = data;
+            
+            // Save to cache
+            this.saveToCache(data);
+            return data;
         } catch (error) {
             throw new Error(`Failed to fetch station data: ${error.message}`);
         }
+    }
+
+    getFromCache() {
+        const cached = localStorage.getItem(this.CACHE_KEY);
+        if (!cached) return null;
+
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp > this.CACHE_DURATION) {
+            localStorage.removeItem(this.CACHE_KEY);
+            return null;
+        }
+
+        return data;
+    }
+
+    saveToCache(data) {
+        const cacheData = {
+            data,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(this.CACHE_KEY, JSON.stringify(cacheData));
     }
 
     populateDropdowns() {
