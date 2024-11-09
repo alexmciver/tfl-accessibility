@@ -324,3 +324,23 @@ select:focus {
 .skip-link:focus {
     top: 10px; /* Move into view when focused */
 }
+
+#back-to-top {
+    position: fixed;
+    bottom: 20px; /* Distance from the bottom */
+    right: 20px; /* Distance from the right */
+    background-color: #007bff; /* Button color */
+    color: white; /* Text color */
+    border: none; /* No border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 15px; /* Padding */
+    font-size: 16px; /* Font size */
+    cursor: pointer; /* Pointer cursor */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+    transition: background-color 0.3s; /* Smooth transition */
+    z-index: 1000; /* Ensure it appears above other content */
+}
+
+#back-to-top:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
