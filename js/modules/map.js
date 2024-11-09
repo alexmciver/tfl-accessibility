@@ -1,11 +1,21 @@
 import { handleMapsError, ErrorTypes, handleError } from '../utils/errorHandler.js';
 import { elements } from '../utils/domUtils.js';
+import { API_KEY } from '../config/config.js';
 
 export class MapService {
     constructor() {
         this.directionsService = null;
         this.directionsRenderer = null;
         this.map = null;
+        this.loadGoogleMapsScript();
+    }
+
+    loadGoogleMapsScript() {
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
     }
 
     initialize(mapElement) {
