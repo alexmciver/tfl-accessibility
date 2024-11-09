@@ -1,4 +1,5 @@
 import { API_KEY } from './config.js';
+import { handleError, handleMapsError, ErrorTypes } from './utils/errorHandler.js';
 
 // Station data management
 let stationData = {};
@@ -21,18 +22,22 @@ export const fetchTFL = async () => {
         const data = await fetchStationData();
         initializeApplication(data);
     } catch (error) {
-        handleError(error);
+        handleError(error, ErrorTypes.STATION_DATA);
     } finally {
         hideLoadingSpinner();
     }
 };
 
 const fetchStationData = async () => {
-    const response = await fetch('./stations.json');
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+        const response = await fetch('./stations.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        throw new Error(`Failed to fetch station data: ${error.message}`);
     }
-    return await response.json();
 };
 
 // Initialization
@@ -81,11 +86,18 @@ const handlePlanRoute = () => {
 
 // Validation
 const validateRouteSelection = (start, end) => {
-    if (start === end) {
-        alert("Please select different stations for the start and end points.");
+    try {
+        if (!start || !end) {
+            throw new Error('Please select both start and end stations.');
+        }
+        if (start === end) {
+            throw new Error('Please select different stations for the start and end points.');
+        }
+        return true;
+    } catch (error) {
+        handleError(error, ErrorTypes.VALIDATION);
         return false;
     }
-    return true;
 };
 
 // Accessibility Information
@@ -119,21 +131,29 @@ const createMapConfig = (start, end) => ({
 });
 
 const initializeGoogleMap = (config) => {
-    const directionsService = new google.maps.DirectionsService();
-    const directionsRenderer = new google.maps.DirectionsRenderer();
-    
-    const map = new google.maps.Map(document.getElementById("map"), config.mapOptions);
-    directionsRenderer.setMap(map);
+    try {
+        if (!window.google || !window.google.maps) {
+            throw new Error('Google Maps not loaded');
+        }
 
-    const request = {
-        origin: config.origin,
-        destination: config.destination,
-        travelMode: google.maps.TravelMode.TRANSIT,
-        transitOptions: config.transitOptions,
-    };
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer();
+        
+        const map = new google.maps.Map(document.getElementById("map"), config.mapOptions);
+        directionsRenderer.setMap(map);
 
-    directionsService.route(request, (result, status) => 
-        handleDirectionsResponse(result, status, directionsRenderer));
+        const request = {
+            origin: config.origin,
+            destination: config.destination,
+            travelMode: google.maps.TravelMode.TRANSIT,
+            transitOptions: config.transitOptions,
+        };
+
+        directionsService.route(request, (result, status) => 
+            handleDirectionsResponse(result, status, directionsRenderer));
+    } catch (error) {
+        handleError(error, ErrorTypes.MAPS_INITIALIZATION);
+    }
 };
 
 const handleDirectionsResponse = (result, status, directionsRenderer) => {
@@ -142,7 +162,7 @@ const handleDirectionsResponse = (result, status, directionsRenderer) => {
         elements.mapContainer.style.display = "block";
         elements.overlay.classList.add("hidden");
     } else {
-        alert("Directions request failed due to " + status);
+        handleMapsError(status);
     }
 };
 
@@ -166,12 +186,6 @@ const resetAccessibilityInfo = () => {
 const resetMapDisplay = () => {
     elements.mapContainer.style.display = "none";
     elements.overlay.classList.remove("hidden");
-};
-
-// Error handling
-const handleError = (error) => {
-    console.error('Error fetching station data:', error);
-    alert(`Failed to load station data. Error: ${error.message}`);
 };
 
 // Call the function to fetch data
