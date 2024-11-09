@@ -1,90 +1,45 @@
-import { handleMapsError, ErrorTypes, handleError } from '../utils/errorHandler.js';
-import { elements } from '../utils/domUtils.js';
-import { API_KEY } from '../config/config.js';
+import { API_KEY } from '../config.js';
+import { handleError, ErrorTypes } from '../utils/errorHandler.js';
 
 export class MapService {
     constructor() {
-        this.directionsService = null;
-        this.directionsRenderer = null;
-        this.map = null;
-        this.isLoaded = false;
+        this.mapElement = null;
+        console.log('MapService initialized'); // Debug log
     }
 
-    async loadGoogleMapsScript() {
-        if (this.isLoaded) return;
-
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
-            script.async = true;
-            script.defer = true;
-            script.onload = () => {
-                this.isLoaded = true;
-                resolve();
-            };
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
+    initialize(mapElement) {
+        console.log('Initializing map with element:', mapElement); // Debug log
+        if (!(mapElement instanceof HTMLIFrameElement)) {
+            console.error('Map element is not an iframe');
+            return;
+        }
+        this.mapElement = mapElement;
     }
 
-    async initialize(mapElement) {
+    async planRoute(start, end) {
         try {
-            await this.loadGoogleMapsScript();
+            console.log('Planning route from', start, 'to', end); // Debug log
+            console.log('Map element:', this.mapElement); // Debug log
 
-            if (!window.google || !window.google.maps) {
-                throw new Error('Google Maps not loaded');
+            if (!this.mapElement) {
+                throw new Error('Map iframe not initialized');
             }
-
-            this.directionsService = new google.maps.DirectionsService();
-            this.directionsRenderer = new google.maps.DirectionsRenderer();
             
-            this.map = new google.maps.Map(mapElement, {
-                zoom: 12,
-                center: { lat: 51.5074, lng: -0.1278 }, // London center
-            });
+            const mapUrl = `https://www.google.com/maps/embed/v1/directions?key=${API_KEY}&origin=${encodeURIComponent(start + " Station, London")}&destination=${encodeURIComponent(end + " Station, London")}&mode=transit&zoom=12`;
+            
+            console.log('Map URL:', mapUrl); // Debug log
+            this.mapElement.src = mapUrl;
+            console.log('Map source updated'); // Debug log
 
-            this.directionsRenderer.setMap(this.map);
         } catch (error) {
+            console.error('Route planning error:', error);
             handleError(error, ErrorTypes.MAPS_INITIALIZATION);
         }
     }
 
-    async planRoute(start, end) {
-        const request = {
-            origin: `${start} Station, London`,
-            destination: `${end} Station, London`,
-            travelMode: google.maps.TravelMode.TRANSIT,
-            transitOptions: {
-                modes: [google.maps.TransitMode.BUS, google.maps.TransitMode.SUBWAY, google.maps.TransitMode.TRAIN],
-                routingPreference: google.maps.TransitRoutePreference.PREFER_ACCESSIBLE,
-            },
-        };
-
-        try {
-            const result = await this.getDirections(request);
-            this.directionsRenderer.setDirections(result);
-            elements.mapContainer.style.display = "block";
-            elements.overlay.classList.add("hidden");
-        } catch (error) {
-            handleMapsError(error);
-        }
-    }
-
-    getDirections(request) {
-        return new Promise((resolve, reject) => {
-            this.directionsService.route(request, (result, status) => {
-                if (status === google.maps.DirectionsStatus.OK) {
-                    resolve(result);
-                } else {
-                    reject(status);
-                }
-            });
-        });
-    }
-
     reset() {
-        if (this.directionsRenderer) {
-            this.directionsRenderer.setDirections({ routes: [] });
+        if (this.mapElement) {
+            this.mapElement.src = '';
         }
     }
 } 
