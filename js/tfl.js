@@ -1,8 +1,5 @@
 import { MapService } from './modules/map.js';
-import { StationService } from './modules/stations.js';
-import { UIService } from './modules/ui.js';
 import { handleError, ErrorTypes } from './utils/errorHandler.js';
-import { elements } from './utils/domUtils.js';
 
 let mapService = new MapService();
 let stationData = {};
