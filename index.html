@@ -11,14 +11,22 @@
 <body>
   <a href="#main-content" class="skip-link">Skip to content</a>
   <header>
-  <img class="logo" src="assets/images/freeflowroutes-logo.png" alt="Free Flow Routes Logo" />
-  <label class="switch" style="margin-left: 20px;">
-    <input type="checkbox" id="dark-mode-toggle" aria-label="Toggle dark mode" />
-    <span class="slider">
-    <i class="fas fa-sun" id="sun-icon" style="display: none;"></i>
-    <i class="fas fa-moon" id="moon-icon"></i>
-    </span>
-  </label>
+    <div class="header-content">
+      <img class="logo" src="assets/images/freeflowroutes-logo.png" alt="Free Flow Routes Logo" />
+      <nav class="main-nav">
+        <ul>
+          <li><a href="index.html" class="active">Journey Planner</a></li>
+          <li><a href="accessibility.html">Accessibility Guide</a></li>
+        </ul>
+      </nav>
+      <label class="switch">
+        <input type="checkbox" id="dark-mode-toggle" aria-label="Toggle dark mode" />
+        <span class="slider">
+          <i class="fas fa-sun" id="sun-icon" style="display: none;"></i>
+          <i class="fas fa-moon" id="moon-icon"></i>
+        </span>
+      </label>
+    </div>
   </header>
   <main id="main-content">
   <section>
@@ -47,6 +55,6 @@
   </div>
   </main>
   <script type="module" src="js/tfl.js"></script>
+  <button id="back-to-top" aria-label="Back to top">↑ Back to Top</button>
 </body>
-<script src="js/index.js" type="module"></script>
 </html>
