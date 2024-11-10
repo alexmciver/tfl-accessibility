@@ -9,12 +9,72 @@ body {
 
 /* Light Mode Header Styles */
 header {
-    background-color: #007bff; /* Light mode background color */
-    color: white; /* Light mode text color */
-    padding: 0 20px;
+    background-color: #0019a8;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    height: 40px; /* Adjust based on your logo size */
+}
+
+/* Navigation styles */
+.main-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 2rem;
+}
+
+.main-nav a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.main-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.main-nav a.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    font-weight: bold;
+}
+
+/* Dark mode adjustments */
+body.dark-mode header {
+    background-color: #1a1a1a;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .main-nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .switch {
+        margin-top: 1rem;
+    }
 }
 
 /* Dark Mode Header Styles */
@@ -343,4 +403,140 @@ select:focus {
 
 #back-to-top:hover {
     background-color: #0056b3; /* Darker shade on hover */
+}
+/* Accessibility Guide Styles */
+/* Add to your existing styles.css */
+
+.accessibility-guide {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.accessibility-levels {
+  margin: 40px 0;
+}
+
+.accessibility-type {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.accessibility-type h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #333;
+}
+
+.symbol {
+  font-size: 1.5em;
+}
+
+.accessibility-type ul {
+  list-style-type: none;
+  padding-left: 20px;
+}
+
+.accessibility-type li {
+  margin: 10px 0;
+  position: relative;
+}
+
+.accessibility-type li:before {
+  content: "•";
+  color: #0019a8;
+  font-weight: bold;
+  position: absolute;
+  left: -15px;
+}
+
+.additional-info,
+.useful-links {
+  margin: 40px 0;
+}
+
+.useful-links a {
+  color: #0019a8;
+  text-decoration: none;
+}
+
+.useful-links a:hover {
+  text-decoration: underline;
+}
+
+/* Dark mode support */
+body.dark-mode .accessibility-type {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+body.dark-mode .accessibility-type h3 {
+  color: #fff;
+}
+
+body.dark-mode .useful-links a {
+  color: #66b8ff;
+}
+
+/* Navigation styles */
+.main-nav {
+    background-color: #0019a8;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.main-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.main-nav li {
+    margin: 0;
+}
+
+.main-nav a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.main-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.main-nav a.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    font-weight: bold;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .main-nav {
+    background-color: #1a1a1a;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .main-nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .main-nav a {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
 }
