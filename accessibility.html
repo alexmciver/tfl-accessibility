@@ -3,18 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TfL Station Accessibility Guide</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Free Flow Routes - Accessibility Guide</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to content</a>
     <header>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="accessibility.html" class="active">Accessibility Guide</a>
-        </nav>
+        <div class="header-content">
+            <img class="logo" src="assets/images/freeflowroutes-logo.png" alt="Free Flow Routes Logo" />
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Journey Planner</a></li>
+                    <li><a href="accessibility.html" class="active">Accessibility Guide</a></li>
+                </ul>
+            </nav>
+            <label class="switch">
+                <input type="checkbox" id="dark-mode-toggle" aria-label="Toggle dark mode" />
+                <span class="slider">
+                    <i class="fas fa-sun" id="sun-icon" style="display: none;"></i>
+                    <i class="fas fa-moon" id="moon-icon"></i>
+                </span>
+            </label>
+        </div>
     </header>
 
-    <main class="accessibility-guide">
+    <main id="main-content" class="accessibility-guide">
         <h1>TfL Station Accessibility Guide</h1>
         
         <section class="accessibility-levels">
@@ -77,5 +91,8 @@
     <footer>
         <p>Data provided by Transport for London</p>
     </footer>
+    
+    <button id="back-to-top" aria-label="Back to top">↑ Back to Top</button>
+    <script type="module" src="js/darkMode.js"></script>
 </body>
 </html> 

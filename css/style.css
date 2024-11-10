@@ -540,3 +540,46 @@ body.dark-mode .main-nav {
         text-align: center;
     }
 }
+
+/* Accessibility Page Specific Styles */
+.accessibility-guide section {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    margin-bottom: 30px;
+    padding: 30px;
+    width: 100%;
+}
+
+.accessibility-guide h1 {
+    color: #0019a8;
+    margin-bottom: 2rem;
+}
+
+.accessibility-guide h2 {
+    color: #0019a8;
+    margin-bottom: 1.5rem;
+}
+
+/* Dark mode adjustments for accessibility page */
+body.dark-mode .accessibility-guide section {
+    background-color: #1e1e1e;
+}
+
+body.dark-mode .accessibility-guide h1,
+body.dark-mode .accessibility-guide h2 {
+    color: #66b8ff;
+}
+
+/* Footer Styles */
+footer {
+    background-color: #0019a8;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+}
+
+body.dark-mode footer {
+    background-color: #1a1a1a;
+}
