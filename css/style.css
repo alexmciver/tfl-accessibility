@@ -602,3 +602,96 @@ footer {
 body.dark-mode footer {
     background-color: var(--dark-surface);
 }
+
+/* Base Transitions */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Button Hover Animation */
+button {
+    transform: translateY(0);
+    transition: transform 0.2s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* Dropdown Hover Effect */
+select {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+select:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.2);
+}
+
+/* Navigation Link Animations */
+.main-nav a {
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.main-nav a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 50%;
+    background-color: var(--text-light);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.main-nav a:hover::after {
+    width: 100%;
+}
+
+/* Dark Mode Toggle Animation */
+.switch .slider {
+    transition: background-color 0.3s ease;
+}
+
+.slider:before {
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+/* Loading Spinner Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Fade In Animation for Content */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+section {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Back to Top Button */
+#back-to-top {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+}
+
+#back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
