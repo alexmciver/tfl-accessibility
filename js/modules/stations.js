@@ -10,8 +10,7 @@ export class StationService {
 
     async fetchStationData() {
         try {
-            // Check cache first
-            const cachedData = this.getFromCache();
+            const cachedData = this.getCachedData();
             if (cachedData) {
                 this.stationData = cachedData;
                 return cachedData;
@@ -25,7 +24,6 @@ export class StationService {
             const data = await response.json();
             this.stationData = data;
             
-            // Save to cache
             this.saveToCache(data);
             return data;
         } catch (error) {
@@ -33,7 +31,7 @@ export class StationService {
         }
     }
 
-    getFromCache() {
+    getCachedData() {
         const cached = localStorage.getItem(this.CACHE_KEY);
         if (!cached) return null;
 
@@ -54,19 +52,50 @@ export class StationService {
         localStorage.setItem(this.CACHE_KEY, JSON.stringify(cacheData));
     }
 
+    isAccessible(accessibility) {
+        return ['Full', 'Partial', 'Interchange'].includes(accessibility);
+    }
+
     populateDropdowns() {
-        const stations = Object.keys(this.stationData);
-        stations.forEach(stationName => {
-            this.addStationOption(elements.startStationSelect, stationName);
-            this.addStationOption(elements.endStationSelect, stationName);
+        if (!this.stationData || Object.keys(this.stationData).length === 0) {
+            return;
+        }
+
+        const accessibleStations = Object.entries(this.stationData)
+            .filter(([_, accessibility]) => {
+                const isAccessible = this.isAccessible(accessibility);
+                return isAccessible;
+            })
+            .map(([station, accessibility]) => {
+                const display = `${station} ${this.getAccessibilityIcon(accessibility)}`;
+                return {
+                    name: station,
+                    display: display,
+                    accessibility
+                };
+            });
+
+        accessibleStations.forEach(station => {
+            this.addStationOption(elements.startStationSelect, station);
+            this.addStationOption(elements.endStationSelect, station);
         });
     }
 
-    addStationOption(selectElement, stationName) {
+    getAccessibilityIcon(accessibility) {
+        switch(accessibility) {
+            case 'Full': return '♿';
+            case 'Partial': return '⚡';
+            case 'Interchange': return '↔️';
+            default: return '';
+        }
+    }
+
+    addStationOption(selectElement, station) {
         const option = document.createElement("option");
-        option.value = stationName;
-        option.text = stationName;
-        selectElement.add(option.cloneNode(true));
+        option.value = station.name;
+        option.text = station.display;
+        option.dataset.accessibility = station.accessibility;
+        selectElement.add(option);
     }
 
     validateRouteSelection(start, end) {

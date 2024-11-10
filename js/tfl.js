@@ -1,42 +1,32 @@
+import { StationService } from './modules/stations.js';
 import { MapService } from './modules/map.js';
 import { handleError, ErrorTypes } from './utils/errorHandler.js';
+import { initializeDarkMode } from './modules/darkMode.js';
 
-let mapService = new MapService();
-let stationData = {};
+// Initialize services
+const stationService = new StationService();
+const mapService = new MapService();
 
+// DOM elements
 const loadingSpinner = document.getElementById("loading-spinner");
 const startStationSelect = document.getElementById("start-station");
 const endStationSelect = document.getElementById("end-station");
 const mapContainer = document.getElementById("map-container");
 const overlay = document.getElementById("overlay");
+const backToTopButton = document.getElementById("back-to-top");
 
 export const fetchTFL = async () => {
-    loadingSpinner.style.display = "block"; // Show spinner
+    loadingSpinner.style.display = "block";
 
     try {
-        const response = await fetch('./stations.json');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        stationData = await response.json();
-        populateStationDropdowns();
+        const data = await stationService.fetchStationData();
+        stationService.populateDropdowns();
         setupEventListeners();
-        await mapService.initialize(document.getElementById("map")); // Initialize map
+        await mapService.initialize(document.getElementById("map"));
     } catch (error) {
-        console.error('Error fetching station data:', error);
         alert(`Failed to load station data. Error: ${error.message}`);
     } finally {
-        loadingSpinner.style.display = "none"; // Hide spinner
-    }
-};
-
-const populateStationDropdowns = () => {
-    for (const stationName in stationData) {
-        const option = document.createElement("option");
-        option.value = stationName;
-        option.text = stationName;
-        startStationSelect.add(option.cloneNode(true));
-        endStationSelect.add(option);
+        loadingSpinner.style.display = "none";
     }
 };
 
@@ -57,7 +47,7 @@ const planRoute = async () => {
 
     displayAccessibilityInfo(start, end);
     try {
-        await mapService.planRoute(start, end); // Use MapService instead of updateMap
+        await mapService.planRoute(start, end);
         mapContainer.style.display = "block";
         overlay.classList.add("hidden");
     } catch (error) {
@@ -66,8 +56,8 @@ const planRoute = async () => {
 };
 
 const displayAccessibilityInfo = (start, end) => {
-    const startAccessibility = stationData[start] || 'N/A';
-    const endAccessibility = stationData[end] || 'N/A';
+    const startAccessibility = stationService.stationData[start] || 'N/A';
+    const endAccessibility = stationService.stationData[end] || 'N/A';
     document.getElementById("start-accessibility").textContent = `Accessibility: ${startAccessibility}`;
     document.getElementById("end-accessibility").textContent = `Accessibility: ${endAccessibility}`;
 };
@@ -83,10 +73,35 @@ const resetSelections = () => {
     document.getElementById("end-accessibility").textContent = '';
     mapContainer.style.display = "none";
     overlay.classList.remove("hidden");
-    if (mapService) {
-        mapService.reset(); // Reset the map if needed
+    if (stationService) {
+        stationService.reset();
     }
 };
 
-// Call the function to fetch data
-fetchTFL();
+// Back to top functionality
+const initializeBackToTop = () => {
+    window.onscroll = function() {
+        if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 200) {
+            backToTopButton.style.display = "block";
+        } else {
+            backToTopButton.style.display = "none";
+        }
+    };
+
+    backToTopButton.addEventListener("click", function() {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    });
+};
+
+// Initialize everything
+const initialize = async () => {
+    initializeDarkMode();
+    initializeBackToTop();
+    await fetchTFL();
+};
+
+// Call initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initialize);
