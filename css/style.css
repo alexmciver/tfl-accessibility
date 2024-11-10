@@ -1,17 +1,36 @@
+/* Color Variables */
+:root {
+    --primary-color: #007bff;      /* Main blue */
+    --primary-dark: #0056b3;       /* Darker blue for hover */
+    --primary-light: #3395ff;      /* Lighter blue for accents */
+    --text-light: #ffffff;         /* White text */
+    --text-dark: #333333;          /* Dark text */
+    --text-muted: #6c757d;         /* Muted text */
+    --background-light: #f4f4f4;   /* Light background */
+    --background-white: #ffffff;   /* White background */
+    --border-color: #ced4da;       /* Border color */
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    
+    /* Dark mode colors */
+    --dark-background: #121212;
+    --dark-surface: #1e1e1e;
+    --dark-primary: #66b8ff;
+}
+
 /* General Styles */
 body {
   font-family: 'Arial', sans-serif;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  background-color: #f4f4f4; /* Light gray background for a softer look */
+  background-color: var(--background-light); /* Light gray background for a softer look */
 }
 
 /* Light Mode Header Styles */
 header {
-    background-color: #0019a8;
+    background-color: var(--primary-color);
     padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .header-content {
@@ -36,7 +55,7 @@ header {
 }
 
 .main-nav a {
-    color: white;
+    color: var(--text-light);
     text-decoration: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
@@ -45,17 +64,17 @@ header {
 }
 
 .main-nav a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(var(--primary-color), 0.1);
 }
 
 .main-nav a.active {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(var(--primary-color), 0.2);
     font-weight: bold;
 }
 
 /* Dark mode adjustments */
 body.dark-mode header {
-    background-color: #1a1a1a;
+    background-color: var(--dark-surface);
 }
 
 /* Responsive design */
@@ -79,8 +98,8 @@ body.dark-mode header {
 
 /* Dark Mode Header Styles */
 header.dark-mode {
-    background-color: #1e1e1e; /* Dark mode background color */
-    color: white; /* Dark mode text color */
+    background-color: var(--dark-surface); /* Dark mode background color */
+    color: var(--text-light); /* Dark mode text color */
 }
 
 h1 {
@@ -105,9 +124,9 @@ section {
   align-items: stretch; /* Stretch to full width */
   margin-bottom: 20px;
   padding: 30px; /* Increased padding for better spacing */
-  background-color: #ffffff; /* White background for the form */
+  background-color: var(--background-white); /* White background for the form */
   border-radius: 12px; /* More rounded corners */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Deeper shadow for depth */
+  box-shadow: 0 8px 16px var(--shadow-color); /* Deeper shadow for depth */
   width: 90%;
   max-width: 600px;
 }
@@ -116,7 +135,7 @@ section {
 label {
   font-weight: bold; /* Bold labels for better visibility */
   margin-top: 10px; /* Space above labels */
-  color: #495057; /* Darker color for labels */
+  color: var(--text-dark); /* Darker color for labels */
 }
 
 /* Input and Button Styles */
@@ -125,19 +144,19 @@ select, button {
   padding: 12px; /* Increased padding for better touch targets */
   font-size: 16px;
   border-radius: 6px; /* More rounded corners */
-  border: 1px solid #ced4da; /* Light border color */
+  border: 1px solid var(--border-color); /* Light border color */
   transition: border-color 0.3s, background-color 0.3s; /* Smooth transition for focus */
   width: 100%; /* Full width for better usability */
 }
 
 select:focus, button:focus {
-  border-color: #0056b3; /* Highlight border on focus */
+  border-color: var(--primary-dark); /* Highlight border on focus */
   outline: none; /* Remove default outline */
 }
 
 button {
-  background-color: #007bff; /* Primary button color */
-  color: white;
+  background-color: var(--primary-color); /* Primary button color */
+  color: var(--text-light);
   cursor: pointer;
   font-weight: bold; /* Bold text for buttons */
   box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2); /* Subtle shadow for buttons */
@@ -145,7 +164,7 @@ button {
 }
 
 button:hover {
-  background-color: #0056b3; /* Darker shade on hover */
+  background-color: var(--primary-dark); /* Darker shade on hover */
   box-shadow: 0 6px 12px rgba(0, 86, 179, 0.3); /* Enhanced shadow on hover */
   transform: translateY(-2px); /* Slight lift effect on hover */
 }
@@ -158,7 +177,7 @@ button:hover {
   margin-top: 20px;
   border-radius: 12px; /* More rounded corners for the map */
   overflow: hidden; /* Prevent overflow */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Shadow for the map container */
+  box-shadow: 0 8px 16px var(--shadow-color); /* Shadow for the map container */
 }
 
 #map {
@@ -174,14 +193,14 @@ button:hover {
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 20px;
-  color: #007bff;
+  color: var(--primary-color);
 }
 
 /* Accessibility Text Styles */
 span {
   margin-left: 10px;
   font-size: 14px;
-  color: #6c757d; /* Lighter gray for accessibility text */
+  color: var(--text-muted); /* Lighter gray for accessibility text */
 }
 
 /* Media Queries for Responsiveness */
@@ -207,7 +226,7 @@ span {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
-    color: white; /* Text color */
+    color: var(--text-light); /* Text color */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -229,10 +248,10 @@ span {
 #reset-button {
     display: flex;
     align-items: center;
-    background: #f8f9fa; /* Light background for a subtle look */
-    border: 1px solid #ced4da; /* Light border */
+    background: var(--background-light); /* Light background for a subtle look */
+    border: 1px solid var(--border-color); /* Light border */
     border-radius: 4px; /* Slightly rounded corners */
-    color: #495057; /* Darker gray color for text */
+    color: var(--text-dark); /* Darker gray color for text */
     cursor: pointer; /* Pointer cursor */
     font-size: 14px; /* Font size */
     padding: 8px 12px; /* Padding for better touch targets */
@@ -241,8 +260,8 @@ span {
 }
 
 #reset-button:hover {
-    background: #e2e6ea; /* Slightly darker background on hover */
-    color: #212529; /* Darker text color on hover */
+    background: var(--text-light); /* Slightly darker background on hover */
+    color: var(--text-dark); /* Darker text color on hover */
 }
 
 #reset-button i {
@@ -251,8 +270,8 @@ span {
 }
 
 #plan-route {
-    background-color: #0056b3; /* Darker blue for better contrast */
-    color: #ffffff; /* White text */
+    background-color: var(--primary-dark); /* Darker blue for better contrast */
+    color: var(--text-light); /* White text */
     border: none; /* No border */
     padding: 12px 20px; /* Padding for better touch targets */
     border-radius: 4px; /* Rounded corners */
@@ -262,27 +281,27 @@ span {
 }
 
 #plan-route:hover {
-    background-color: #004494; /* Even darker blue on hover */
+    background-color: var(--primary-dark); /* Even darker blue on hover */
 }
 
 /* Dark Mode Styles */
 body.dark-mode {
-    background-color: #121212; /* Dark background */
-    color: #ffffff; /* Light text color */
+    background-color: var(--dark-background); /* Dark background */
+    color: var(--text-light); /* Light text color */
 }
 
 section.dark-mode {
-    background-color: #1e1e1e; /* Dark section background */
-    color: #ffffff; /* Light text color */
+    background-color: var(--dark-surface); /* Dark section background */
+    color: var(--text-light); /* Light text color */
 }
 
 button.dark-mode {
-    background-color: #007bff; /* Button color */
-    color: white; /* Button text color */
+    background-color: var(--primary-color); /* Button color */
+    color: var(--text-light); /* Button text color */
 }
 
 button.dark-mode:hover {
-    background-color: #0056b3; /* Darker button color on hover */
+    background-color: var(--primary-dark); /* Darker button color on hover */
 }
 
 /* Add more dark mode styles as needed */
@@ -326,7 +345,7 @@ button.dark-mode:hover {
 }
 
 input:checked + .slider {
-    background-color: #007bff; /* Change background color when checked */
+    background-color: var(--primary-color); /* Change background color when checked */
 }
 
 input:checked + .slider:before {
@@ -343,7 +362,7 @@ input:checked + .slider:before {
 
 #sun-icon {
     left: 10px; /* Position for sun icon */
-    color: white; /* Dark mode icon color */
+    color: var(--text-light); /* Dark mode icon color */
 }
 
 #moon-icon {
@@ -360,21 +379,21 @@ input:checked + .slider:before {
 /* Custom focus styles */
 button:focus, 
 select:focus {
-    outline: 2px solid #0056b3; /* Custom focus outline */
+    outline: 2px solid var(--primary-dark); /* Custom focus outline */
     outline-offset: 2px; /* Space between the outline and the element */
 }
 
 /* Ensure focus is visible on the logo if needed */
 .logo:focus {
-    outline: 2px solid #0056b3; /* Custom focus outline for logo */
+    outline: 2px solid var(--primary-dark); /* Custom focus outline for logo */
 }
 
 .skip-link {
     position: absolute;
     top: -40px; /* Move off-screen */
     left: 10px;
-    background-color: #007bff; /* Background color */
-    color: white; /* Text color */
+    background-color: var(--primary-color); /* Background color */
+    color: var(--text-light); /* Text color */
     padding: 8px 12px; /* Padding */
     border-radius: 4px; /* Rounded corners */
     transition: top 0.3s; /* Smooth transition */
@@ -389,20 +408,20 @@ select:focus {
     position: fixed;
     bottom: 20px; /* Distance from the bottom */
     right: 20px; /* Distance from the right */
-    background-color: #007bff; /* Button color */
-    color: white; /* Text color */
+    background-color: var(--primary-color); /* Button color */
+    color: var(--text-light); /* Text color */
     border: none; /* No border */
     border-radius: 5px; /* Rounded corners */
     padding: 10px 15px; /* Padding */
     font-size: 16px; /* Font size */
     cursor: pointer; /* Pointer cursor */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+    box-shadow: 0 4px 8px var(--shadow-color); /* Shadow for depth */
     transition: background-color 0.3s; /* Smooth transition */
     z-index: 1000; /* Ensure it appears above other content */
 }
 
 #back-to-top:hover {
-    background-color: #0056b3; /* Darker shade on hover */
+    background-color: var(--primary-dark); /* Darker shade on hover */
 }
 /* Accessibility Guide Styles */
 /* Add to your existing styles.css */
@@ -418,18 +437,18 @@ select:focus {
 }
 
 .accessibility-type {
-  background: #f5f5f5;
+  background: var(--background-light);
   border-radius: 8px;
   padding: 20px;
   margin: 20px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .accessibility-type h3 {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #333;
+  color: var(--text-dark);
 }
 
 .symbol {
@@ -448,7 +467,7 @@ select:focus {
 
 .accessibility-type li:before {
   content: "•";
-  color: #0019a8;
+  color: var(--primary-color);
   font-weight: bold;
   position: absolute;
   left: -15px;
@@ -460,7 +479,7 @@ select:focus {
 }
 
 .useful-links a {
-  color: #0019a8;
+  color: var(--primary-color);
   text-decoration: none;
 }
 
@@ -470,24 +489,24 @@ select:focus {
 
 /* Dark mode support */
 body.dark-mode .accessibility-type {
-  background: #2a2a2a;
-  color: #fff;
+  background: var(--dark-surface);
+  color: var(--text-light);
 }
 
 body.dark-mode .accessibility-type h3 {
-  color: #fff;
+  color: var(--text-light);
 }
 
 body.dark-mode .useful-links a {
-  color: #66b8ff;
+  color: var(--dark-primary);
 }
 
 /* Navigation styles */
 .main-nav {
-    background-color: #0019a8;
+    background-color: var(--primary-color);
     padding: 1rem;
     margin-bottom: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .main-nav ul {
@@ -504,7 +523,7 @@ body.dark-mode .useful-links a {
 }
 
 .main-nav a {
-    color: white;
+    color: var(--text-light);
     text-decoration: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
@@ -513,17 +532,17 @@ body.dark-mode .useful-links a {
 }
 
 .main-nav a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(var(--text-light), 0.1);
 }
 
 .main-nav a.active {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(var(--text-light), 0.2);
     font-weight: bold;
 }
 
 /* Dark mode adjustments */
 body.dark-mode .main-nav {
-    background-color: #1a1a1a;
+    background-color: var(--dark-surface);
 }
 
 /* Responsive design */
@@ -543,43 +562,43 @@ body.dark-mode .main-nav {
 
 /* Accessibility Page Specific Styles */
 .accessibility-guide section {
-    background-color: #ffffff;
+    background-color: var(--background-white);
     border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 16px var(--shadow-color);
     margin-bottom: 30px;
     padding: 30px;
     width: 100%;
 }
 
 .accessibility-guide h1 {
-    color: #0019a8;
+    color: var(--primary-color);
     margin-bottom: 2rem;
 }
 
 .accessibility-guide h2 {
-    color: #0019a8;
+    color: var(--primary-color);
     margin-bottom: 1.5rem;
 }
 
 /* Dark mode adjustments for accessibility page */
 body.dark-mode .accessibility-guide section {
-    background-color: #1e1e1e;
+    background-color: var(--dark-surface);
 }
 
 body.dark-mode .accessibility-guide h1,
 body.dark-mode .accessibility-guide h2 {
-    color: #66b8ff;
+    color: var(--dark-primary);
 }
 
 /* Footer Styles */
 footer {
-    background-color: #0019a8;
-    color: white;
+    background-color: var(--primary-color);
+    color: var(--text-light);
     text-align: center;
     padding: 1rem;
     margin-top: 2rem;
 }
 
 body.dark-mode footer {
-    background-color: #1a1a1a;
+    background-color: var(--dark-surface);
 }
