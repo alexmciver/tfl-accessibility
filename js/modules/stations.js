@@ -61,11 +61,7 @@ export class StationService {
             return;
         }
 
-        const accessibleStations = Object.entries(this.stationData)
-            .filter(([_, accessibility]) => {
-                const isAccessible = this.isAccessible(accessibility);
-                return isAccessible;
-            })
+        const allStations = Object.entries(this.stationData)
             .map(([station, accessibility]) => {
                 const display = `${station} ${this.getAccessibilityIcon(accessibility)}`;
                 return {
@@ -73,9 +69,10 @@ export class StationService {
                     display: display,
                     accessibility
                 };
-            });
+            })
+            .sort((a, b) => a.name.localeCompare(b.name));
 
-        accessibleStations.forEach(station => {
+        allStations.forEach(station => {
             this.addStationOption(elements.startStationSelect, station);
             this.addStationOption(elements.endStationSelect, station);
         });
@@ -86,6 +83,7 @@ export class StationService {
             case 'Full': return '♿';
             case 'Partial': return '⚡';
             case 'Interchange': return '↔️';
+            case 'None': return '⚠️';
             default: return '';
         }
     }
