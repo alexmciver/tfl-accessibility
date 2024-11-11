@@ -1,0 +1,22 @@
+:root {
+    /* Colors */
+    --primary-color: #007bff;
+    --primary-dark: #0056b3;
+    --primary-light: #3395ff;
+    --text-light: #ffffff;
+    --text-dark: #333333;
+    --text-muted: #6c757d;
+    --background-light: #f4f4f4;
+    --background-white: #ffffff;
+    --border-color: #ced4da;
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    
+    /* Dark mode colors */
+    --dark-background: #121212;
+    --dark-surface: #1e1e1e;
+    --dark-primary: #66b8ff;
+
+    /* Typography */
+    --font-primary: 'Inter', sans-serif;
+    --font-headings: 'Poppins', sans-serif;
+} 
