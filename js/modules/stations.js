@@ -16,7 +16,7 @@ export class StationService {
                 return cachedData;
             }
 
-            const response = await fetch('./stations.json');
+            const response = await fetch('./data/stations.json');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
