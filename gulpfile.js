@@ -18,8 +18,8 @@ const paths = {
         dest: 'dist/css'
     },
     scripts: {
-        src: 'src/js/**/*.js',
-        dest: 'dist/js'
+        src: 'js/**/*.js',
+        dest: 'js'
     },
     html: {
         src: 'public/**/*.html',
