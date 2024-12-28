@@ -1,11 +1,15 @@
-const gulp = require('gulp');
-const sass = require('gulp-sass')(require('sass'));
-const autoprefixer = require('gulp-autoprefixer');
-const cleanCSS = require('gulp-clean-css');
-const sourcemaps = require('gulp-sourcemaps');
-const terser = require('gulp-terser');
-const concat = require('gulp-concat');
-const browserSync = require('browser-sync').create();
+import gulp from 'gulp';
+import sass from 'gulp-sass';
+import * as dartSass from 'sass';
+import autoprefixer from 'gulp-autoprefixer';
+import cleanCSS from 'gulp-clean-css';
+import sourcemaps from 'gulp-sourcemaps';
+import terser from 'gulp-terser';
+import concat from 'gulp-concat';
+import browserSync from 'browser-sync';
+
+const sassCompiler = sass(dartSass);
+const bs = browserSync.create();
 
 // File paths
 const paths = {
@@ -35,12 +39,12 @@ const paths = {
 function styles() {
     return gulp.src('src/scss/main.scss')
         .pipe(sourcemaps.init())
-        .pipe(sass().on('error', sass.logError))
+        .pipe(sassCompiler().on('error', sass.logError))
         .pipe(autoprefixer())
         .pipe(cleanCSS())
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(paths.styles.dest))
-        .pipe(browserSync.stream());
+        .pipe(bs.stream());
 }
 
 // JavaScript task
@@ -49,26 +53,24 @@ function scripts() {
         .pipe(terser())
         .pipe(concat('main.min.js'))
         .pipe(gulp.dest(paths.scripts.dest))
-        .pipe(browserSync.stream());
+        .pipe(bs.stream());
 }
 
 // Watch files
 function watch() {
-    browserSync.init({
+    bs.init({
         server: {
             baseDir: './'
         }
     });
     gulp.watch(paths.styles.src, styles);
     gulp.watch(paths.scripts.src, scripts);
-    gulp.watch(paths.html.src).on('change', browserSync.reload);
+    gulp.watch(paths.html.src).on('change', bs.reload);
 }
 
 // Export tasks
-exports.styles = styles;
-exports.scripts = scripts;
-exports.watch = watch;
-exports.default = gulp.series(
+export { styles, scripts, watch };
+export default gulp.series(
     gulp.parallel(styles, scripts),
     watch
 ); 
