@@ -1,20 +1,55 @@
+/* 
+ * Color Palette Documentation
+ * ---------------------------
+ * Primary: #00a19a (Teal)
+ * Primary Dark: #008580 (Dark Teal)
+ * Primary Light: #4dc0bb (Light Teal)
+ * 
+ * Accent: #ff9a57 (Orange)
+ * Secondary: #5d5dba (Purple)
+ * 
+ * Success: #34a853 (Green)
+ * Warning: #ffbb00 (Yellow)
+ * Danger: #ea4335 (Red)
+ * 
+ * Background Light: #f8f9fa
+ * Background White: #ffffff
+ * Text Dark: #333333
+ * Text Muted: #6c757d
+ * Border Color: #dee2e6
+ */
+
 /* Color Variables */
 :root {
-    --primary-color: #007bff;      /* Main blue */
-    --primary-dark: #0056b3;       /* Darker blue for hover */
-    --primary-light: #3395ff;      /* Lighter blue for accents */
+    /* Primary Colors - Teal/Green Palette */
+    --primary-color: #00a19a;      /* Main teal */
+    --primary-dark: #008580;       /* Darker teal for hover */
+    --primary-light: #4dc0bb;      /* Lighter teal for accents */
+    
+    /* Neutral Colors */
     --text-light: #ffffff;         /* White text */
     --text-dark: #333333;          /* Dark text */
     --text-muted: #6c757d;         /* Muted text */
-    --background-light: #f4f4f4;   /* Light background */
+    --background-light: #f8f9fa;   /* Light background */
     --background-white: #ffffff;   /* White background */
-    --border-color: #ced4da;       /* Border color */
+    
+    /* Border and Shadow */
+    --border-color: #dee2e6;       /* Border color */
     --shadow-color: rgba(0, 0, 0, 0.2);
+    
+    /* Accent Colors */
+    --accent-color: #ff9a57;       /* Orange accent */
+    --secondary-color: #5d5dba;    /* Purple secondary */
+    --success-color: #34a853;      /* Success green */
+    --warning-color: #ffbb00;      /* Warning yellow */
+    --danger-color: #ea4335;       /* Danger red */
     
     /* Dark mode colors */
     --dark-background: #121212;
     --dark-surface: #1e1e1e;
-    --dark-primary: #66b8ff;
+    --dark-primary: #4dc0bb;       /* Lighter teal for dark mode */
+    --dark-accent: #ffa76f;        /* Lighter orange for dark mode */
+    --dark-secondary: #7a7acd;     /* Lighter purple for dark mode */
 }
 
 /* Font Variables */
@@ -341,8 +376,9 @@ button.dark-mode:hover {
 .switch {
     position: relative;
     display: inline-block;
-    width: 80px; /* Increased width for better visibility */
-    height: 40px; /* Increased height for better touch targets */
+    width: 60px;
+    height: 30px;
+    margin-left: 10px;
 }
 
 .switch input {
@@ -358,47 +394,49 @@ button.dark-mode:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: var(--background-light);
     transition: .4s;
-    border-radius: 34px; /* Rounded corners */
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 5px;
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 32px; /* Increased height for the knob */
-    width: 32px; /* Increased width for the knob */
+    height: 22px;
+    width: 22px;
     left: 4px;
     bottom: 4px;
-    background-color: white;
+    background-color: var(--text-light);
     transition: .4s;
-    border-radius: 50%; /* Circular knob */
+    border-radius: 50%;
+    z-index: 2;
 }
 
 input:checked + .slider {
-    background-color: var(--primary-color); /* Change background color when checked */
+    background-color: var(--primary-color);
 }
 
 input:checked + .slider:before {
-    transform: translateX(40px); /* Move the knob to the right */
+    transform: translateX(30px);
 }
 
-/* Optional: Style for icons */
 .slider i {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 20px; /* Increased icon size for better visibility */
+    color: var(--primary-color);
+    font-size: 14px;
+    z-index: 1;
 }
 
 #sun-icon {
-    left: 10px; /* Position for sun icon */
-    color: var(--text-light); /* Dark mode icon color */
+    color: var(--accent-color);
+    margin-left: auto;
 }
 
 #moon-icon {
-    right: 10px; /* Position for moon icon */
-    display: none; /* Initially hide moon icon */
+    color: var(--secondary-color);
 }
 
 /* Logo Styles */
@@ -468,22 +506,31 @@ select:focus {
 }
 
 .accessibility-type {
-  background: var(--background-light);
+  padding: 1.5rem;
+  background-color: var(--background-light);
   border-radius: 8px;
-  padding: 20px;
-  margin: 20px 0;
-  box-shadow: 0 2px 4px var(--shadow-color);
+  border-left: 4px solid var(--primary-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.accessibility-type:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  border-left-color: var(--accent-color);
 }
 
 .accessibility-type h3 {
   display: flex;
   align-items: center;
-  gap: 10px;
+  margin-bottom: 1rem;
   color: var(--text-dark);
+  font-weight: 600;
 }
 
 .symbol {
-  font-size: var(--text-2xl);
+  font-size: 1.5rem;
+  margin-right: 0.75rem;
+  display: inline-block;
 }
 
 .accessibility-type ul {
@@ -992,7 +1039,7 @@ footer {
 }
 
 .secondary-button:hover {
-  background-color: rgba(0, 123, 255, 0.1);
+  background-color: rgba(0, 161, 154, 0.1);
   transform: translateY(-2px);
 }
 
@@ -1089,7 +1136,7 @@ footer {
 
 .accessibility-type {
   padding: 1.5rem;
-  background-color: #f9f9f9;
+  background-color: var(--background-light);
   border-radius: 8px;
   border-left: 4px solid var(--primary-color);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -1098,6 +1145,7 @@ footer {
 .accessibility-type:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  border-left-color: var(--accent-color);
 }
 
 .accessibility-type h3 {
@@ -1144,18 +1192,18 @@ footer {
 .resource-card {
   display: block;
   padding: 1.5rem;
-  background-color: #f9f9f9;
+  background-color: var(--background-light);
   border-radius: 8px;
   text-decoration: none;
   color: var(--text-dark);
-  border: 1px solid #eaeaea;
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
 .resource-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  border-color: var(--primary-color);
+  border-color: var(--accent-color);
 }
 
 .resource-card i {
@@ -1181,8 +1229,8 @@ footer {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: var(--primary-color);
-  color: white;
+  background-color: var(--accent-color);
+  color: var(--text-light);
   text-decoration: none;
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
@@ -1192,7 +1240,7 @@ footer {
 }
 
 .contact-button:hover {
-  background-color: var(--primary-dark);
+  background-color: #f07e33; /* Darker version of accent for hover */
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -1450,4 +1498,191 @@ body.dark-mode select {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Accessibility Type */
+.accessibility-type {
+  padding: 1.5rem;
+  background-color: var(--background-light);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.accessibility-type:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  border-left-color: var(--accent-color);
+}
+
+.accessibility-type h3 {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+/* Symbol styles with our new color palette */
+.symbol {
+  font-size: 1.5rem;
+  margin-right: 0.75rem;
+  display: inline-block;
+}
+
+/* Enhanced Lists with color palette */
+.enhanced-list li i {
+  color: var(--primary-color);
+  margin-right: 0.75rem;
+  font-size: 1.2rem;
+  margin-top: 0.2rem;
+}
+
+/* Update resource cards */
+.resource-card {
+  display: block;
+  padding: 1.5rem;
+  background-color: var(--background-light);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-dark);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.resource-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent-color);
+}
+
+.resource-card i {
+  color: var(--primary-color);
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.resource-card h3 {
+  margin: 0.5rem 0;
+  color: var(--primary-color);
+  font-size: var(--text-lg);
+}
+
+/* Contact Button */
+.contact-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--accent-color);
+  color: var(--text-light);
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.contact-button:hover {
+  background-color: #f07e33; /* Darker version of accent for hover */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Button color updates */
+.secondary-button {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+.secondary-button:hover {
+  background-color: rgba(0, 161, 154, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Footer color updates */
+footer {
+  background-color: var(--primary-dark);
+  color: var(--text-light);
+  padding: 2rem 1rem;
+  margin-top: 3rem;
+}
+
+/* Map header color updates */
+.map-header {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Input icon colors */
+.input-with-icon i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary-color);
+  font-size: 1.2rem;
+}
+
+/* Dark mode updates for our new color scheme */
+body.dark-mode .hero-section {
+  background-image: linear-gradient(135deg, var(--dark-surface) 0%, #000 100%);
+}
+
+body.dark-mode .enhanced-list li i,
+body.dark-mode .resource-card i,
+body.dark-mode .overlay-icon,
+body.dark-mode .input-with-icon i {
+  color: var(--dark-primary);
+}
+
+body.dark-mode .resource-card h3 {
+  color: var(--dark-primary);
+}
+
+body.dark-mode .contact-button {
+  background-color: var(--dark-accent);
+}
+
+body.dark-mode .contact-button:hover {
+  background-color: #e87d45; /* Darker version for hover in dark mode */
+}
+
+/* Accessibility Symbols - Use our defined color variables */
+.accessibility-type:nth-child(1) .symbol {
+  color: var(--success-color); /* Full step-free access - Green */
+}
+
+.accessibility-type:nth-child(2) .symbol {
+  color: var(--secondary-color); /* Interchange access - Purple */
+}
+
+.accessibility-type:nth-child(3) .symbol {
+  color: var(--accent-color); /* Partial step-free access - Orange */
+}
+
+.accessibility-type:nth-child(4) .symbol {
+  color: var(--warning-color); /* No step-free access - Yellow */
+}
+
+/* Dark mode adjustments for accessibility symbols */
+body.dark-mode .accessibility-type:nth-child(1) .symbol {
+  color: var(--success-color);
+}
+
+body.dark-mode .accessibility-type:nth-child(2) .symbol {
+  color: var(--dark-secondary);
+}
+
+body.dark-mode .accessibility-type:nth-child(3) .symbol {
+  color: var(--dark-accent);
+}
+
+body.dark-mode .accessibility-type:nth-child(4) .symbol {
+  color: var(--warning-color);
 }
