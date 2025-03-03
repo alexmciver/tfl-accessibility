@@ -3,14 +3,29 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Set the current year in the footer
+  const currentYearElements = document.querySelectorAll('#current-year');
+  const currentYear = new Date().getFullYear();
+  
+  if (currentYearElements) {
+    currentYearElements.forEach(element => {
+      element.textContent = currentYear;
+    });
+  }
+
   // Mobile navigation toggle
   const menuToggle = document.querySelector('.menu-toggle');
   const mainMenu = document.getElementById('main-menu');
   
   if (menuToggle && mainMenu) {
-    menuToggle.addEventListener('click', () => {
+    menuToggle.addEventListener('click', (event) => {
+      // Prevent event from bubbling up
+      event.stopPropagation();
+      
       const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
       menuToggle.setAttribute('aria-expanded', !isExpanded);
+      
+      // Toggle the show class on the menu
       mainMenu.classList.toggle('show');
       
       // Toggle icon between bars and X
@@ -28,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Close menu when clicking outside
     document.addEventListener('click', (event) => {
-      if (!event.target.closest('.main-nav') && mainMenu.classList.contains('show')) {
+      if (mainMenu.classList.contains('show') && !event.target.closest('.main-nav')) {
         mainMenu.classList.remove('show');
         menuToggle.setAttribute('aria-expanded', 'false');
         
@@ -38,6 +53,11 @@ document.addEventListener('DOMContentLoaded', () => {
           icon.classList.add('fa-bars');
         }
       }
+    });
+    
+    // Prevent menu from closing when clicking on menu items
+    mainMenu.addEventListener('click', (event) => {
+      event.stopPropagation();
     });
   }
   
