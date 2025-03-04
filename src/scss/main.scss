@@ -1,0 +1,27 @@
+/**
+ * Free Flow Routes - Main SCSS File
+ * A modern, accessible journey planner for London transport
+ */
+
+// Base styles
+@import 'base/variables';
+@import 'base/reset';
+@import 'base/typography';
+
+// Components
+@import 'components/buttons';
+@import 'components/forms';
+@import 'components/navigation';
+@import 'components/accessibility';
+
+// Layouts
+@import 'layouts/header';
+@import 'layouts/footer';
+@import 'layouts/map';
+
+// Utils
+@import 'utils/mixins';
+@import 'utils/helpers';
+
+// Legacy styles - to be migrated
+// @import 'base/legacy'; 
