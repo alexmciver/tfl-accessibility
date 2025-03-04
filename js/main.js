@@ -1,0 +1,596 @@
+// Main JavaScript functionality for Free Flow Routes
+document.addEventListener('DOMContentLoaded', function() {
+    initDarkModeToggle();
+    initMenuToggle();
+    initBackToTop();
+    initCopyrightYear();
+    initOverlay();
+    setupFormValidation();
+    formInteractionEnhancements();
+    initAccessibilityFeatures();
+});
+
+// Initialize dark mode toggle functionality
+function initDarkModeToggle() {
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    
+    // Check for saved theme preference or use system preference
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    const storedTheme = localStorage.getItem('theme');
+    
+    if (storedTheme === 'dark' || (!storedTheme && prefersDarkScheme.matches)) {
+        document.body.classList.add('dark-mode');
+        if (darkModeToggle) darkModeToggle.checked = true;
+    }
+    
+    // Add event listener for toggle change
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    }
+    
+    // Listen for system theme changes
+    prefersDarkScheme.addEventListener('change', function(e) {
+        if (!localStorage.getItem('theme')) {
+            if (e.matches) {
+                document.body.classList.add('dark-mode');
+                if (darkModeToggle) darkModeToggle.checked = true;
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (darkModeToggle) darkModeToggle.checked = false;
+            }
+        }
+    });
+}
+
+// Initialize mobile menu toggle
+function initMenuToggle() {
+    const menuToggle = document.querySelector('.menu-toggle');
+    const mainNav = document.querySelector('.main-nav ul');
+    
+    if (menuToggle && mainNav) {
+        menuToggle.addEventListener('click', function() {
+            mainNav.classList.toggle('show');
+            
+            // Update ARIA expanded state
+            const isExpanded = mainNav.classList.contains('show');
+            menuToggle.setAttribute('aria-expanded', isExpanded);
+            
+            // Toggle between hamburger and X icon
+            const icon = menuToggle.querySelector('i');
+            if (icon) {
+                if (isExpanded) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            }
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.main-nav') && mainNav.classList.contains('show')) {
+                mainNav.classList.remove('show');
+                menuToggle.setAttribute('aria-expanded', false);
+                
+                const icon = menuToggle.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            }
+        });
+    }
+}
+
+// Initialize back to top button
+function initBackToTop() {
+    const backToTopBtn = document.getElementById('back-to-top');
+    
+    if (backToTopBtn) {
+        // Show/hide button based on scroll position
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+        
+        // Scroll to top when button is clicked
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
+}
+
+// Set the current year in the footer copyright text
+function initCopyrightYear() {
+    const yearElement = document.getElementById('current-year');
+    
+    if (yearElement) {
+        const currentYear = new Date().getFullYear();
+        yearElement.textContent = currentYear;
+    }
+}
+
+// Initialize the intro overlay and close button
+function initOverlay() {
+    const overlay = document.querySelector('.overlay');
+    const closeOverlayBtn = document.querySelector('.close-overlay');
+    
+    if (overlay && closeOverlayBtn) {
+        closeOverlayBtn.addEventListener('click', function() {
+            overlay.style.display = 'none';
+        });
+    }
+    
+    // Close overlay when clicking outside content
+    if (overlay) {
+        overlay.addEventListener('click', function(event) {
+            if (event.target === overlay) {
+                overlay.style.display = 'none';
+            }
+        });
+        
+        // Close overlay with ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && overlay.style.display !== 'none') {
+                overlay.style.display = 'none';
+            }
+        });
+    }
+}
+
+// Form validation for the contact form
+function setupFormValidation() {
+    const contactForm = document.querySelector('.contact-form');
+    
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            // Validate form fields
+            let isValid = true;
+            const name = document.getElementById('name');
+            const email = document.getElementById('email');
+            const message = document.getElementById('message');
+            
+            // Simple validation checks
+            if (!name.value.trim()) {
+                isValid = false;
+                showError(name, 'Please enter your name');
+            } else {
+                clearError(name);
+            }
+            
+            if (!email.value.trim()) {
+                isValid = false;
+                showError(email, 'Please enter your email');
+            } else if (!isValidEmail(email.value)) {
+                isValid = false;
+                showError(email, 'Please enter a valid email address');
+            } else {
+                clearError(email);
+            }
+            
+            if (!message.value.trim()) {
+                isValid = false;
+                showError(message, 'Please enter your message');
+            } else {
+                clearError(message);
+            }
+            
+            if (isValid) {
+                // In a real application, this would submit the form data
+                showFormSuccess();
+                contactForm.reset();
+            }
+        });
+    }
+}
+
+// Helper function to validate email format
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Show error message for form field
+function showError(element, message) {
+    // Remove any existing error
+    clearError(element);
+    
+    const errorElement = document.createElement('span');
+    errorElement.className = 'error-message';
+    errorElement.textContent = message;
+    
+    element.classList.add('error');
+    element.parentNode.appendChild(errorElement);
+}
+
+// Clear error message for form field
+function clearError(element) {
+    const errorElement = element.parentNode.querySelector('.error-message');
+    
+    if (errorElement) {
+        errorElement.remove();
+    }
+    
+    element.classList.remove('error');
+}
+
+// Show success message after form submission
+function showFormSuccess() {
+    const successElement = document.createElement('div');
+    successElement.className = 'form-success';
+    successElement.innerHTML = '<i class="fas fa-check-circle"></i> Your message has been sent successfully!';
+    
+    const contactForm = document.querySelector('.contact-form');
+    contactForm.insertAdjacentElement('beforebegin', successElement);
+    
+    // Remove success message after 5 seconds
+    setTimeout(() => {
+        successElement.style.opacity = '0';
+        setTimeout(() => {
+            successElement.remove();
+        }, 500);
+    }, 5000);
+}
+
+// Form interaction enhancements
+function formInteractionEnhancements() {
+    // Dynamic label behavior for forms
+    const formInputs = document.querySelectorAll('input, textarea, select');
+    
+    formInputs.forEach(input => {
+        // Handle focus state for parent form-group
+        input.addEventListener('focus', function() {
+            const parent = this.closest('.form-group');
+            if (parent) parent.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            const parent = this.closest('.form-group');
+            if (parent) parent.classList.remove('focused');
+        });
+        
+        // Check for pre-filled values on page load
+        if (input.value) {
+            const parent = input.closest('.form-group');
+            if (parent) parent.classList.add('has-value');
+        }
+        
+        // Handle changes to inputs
+        input.addEventListener('input', function() {
+            const parent = this.closest('.form-group');
+            if (parent) {
+                if (this.value) {
+                    parent.classList.add('has-value');
+                } else {
+                    parent.classList.remove('has-value');
+                }
+            }
+        });
+    });
+    
+    // Basic form validation
+    const validateForm = (form) => {
+        let isValid = true;
+        
+        // Remove any existing validation messages
+        form.querySelectorAll('.validation-message').forEach(msg => msg.remove());
+        
+        // Validate required fields
+        form.querySelectorAll('[required]').forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                const message = document.createElement('span');
+                message.className = 'validation-message error';
+                message.textContent = 'This field is required';
+                
+                const parent = field.closest('.form-group') || field.parentNode;
+                parent.appendChild(message);
+                
+                // Highlight the invalid field
+                field.classList.add('invalid');
+            } else {
+                field.classList.remove('invalid');
+            }
+        });
+        
+        // Validate email format if present
+        const emailFields = form.querySelectorAll('input[type="email"]');
+        emailFields.forEach(field => {
+            if (field.value && !validateEmail(field.value)) {
+                isValid = false;
+                const message = document.createElement('span');
+                message.className = 'validation-message error';
+                message.textContent = 'Please enter a valid email address';
+                
+                const parent = field.closest('.form-group') || field.parentNode;
+                parent.appendChild(message);
+                
+                // Highlight the invalid field
+                field.classList.add('invalid');
+            }
+        });
+        
+        return isValid;
+    };
+    
+    // Email validation helper
+    const validateEmail = (email) => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
+    
+    // Handle form submissions
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            // Check the form is valid
+            if (!validateForm(this)) {
+                event.preventDefault();
+                // Scroll to the first error
+                const firstError = this.querySelector('.validation-message.error');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } else if (this.classList.contains('contact-form')) {
+                // For demo purposes, prevent form submission and show success message
+                event.preventDefault();
+                
+                // Create success message
+                const formWrapper = this.closest('.contact-content');
+                if (formWrapper) {
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'form-feedback success';
+                    successMessage.innerHTML = `
+                        <h3><i class="fas fa-check-circle"></i> Message Sent!</h3>
+                        <p>Thank you for your message. We'll get back to you soon.</p>
+                    `;
+                    
+                    // Replace form with success message
+                    this.style.display = 'none';
+                    formWrapper.insertBefore(successMessage, this);
+                    
+                    // Reset form (in case user navigates back)
+                    this.reset();
+                }
+            }
+        });
+    });
+    
+    // Handle route search form specifically
+    const routeForm = document.getElementById('route-search-form');
+    if (routeForm) {
+        routeForm.addEventListener('submit', function(event) {
+            // For demo, simulate route search
+            event.preventDefault();
+            
+            // Get form inputs
+            const start = document.getElementById('start').value;
+            const destination = document.getElementById('destination').value;
+            
+            // Validate basic inputs
+            if (!start || !destination) {
+                alert('Please enter both starting point and destination');
+                return;
+            }
+            
+            // Show loading state
+            const loadingSpinner = document.createElement('div');
+            loadingSpinner.className = 'loading-spinner';
+            loadingSpinner.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+            document.querySelector('.map-view').prepend(loadingSpinner);
+            
+            // Update route info
+            document.querySelector('.route-info').textContent = `Route from ${start} to ${destination}`;
+            
+            // Simulate API load time
+            setTimeout(() => {
+                // Update journey stats
+                document.querySelector('.time-value').textContent = '35 min';
+                document.querySelector('.distance-value').textContent = '2.4 km';
+                document.querySelector('.accessibility-value').textContent = 'Step-free';
+                
+                // Update route steps
+                const stepList = document.querySelector('.step-list');
+                stepList.innerHTML = ''; // Clear placeholder
+                
+                // Sample route steps
+                const steps = [
+                    { text: 'Start at ' + start, icon: 'fa-map-marker-alt', note: null },
+                    { text: 'Walk 200m to Bus Stop A', icon: 'fa-walking', note: 'Step-free path available' },
+                    { text: 'Take Bus 42 towards City Centre', icon: 'fa-bus', note: 'This bus has wheelchair access' },
+                    { text: 'Ride for 5 stops (12 minutes)', icon: 'fa-clock', note: null },
+                    { text: 'Get off at Station Road', icon: 'fa-sign', note: null },
+                    { text: 'Walk 150m to ' + destination, icon: 'fa-walking', note: 'Curb cuts and tactile paving present' },
+                    { text: 'Arrive at destination', icon: 'fa-flag-checkered', note: null }
+                ];
+                
+                // Add steps to the list
+                steps.forEach(step => {
+                    const li = document.createElement('li');
+                    let stepHTML = `<i class="fas ${step.icon}"></i>${step.text}`;
+                    
+                    if (step.note) {
+                        stepHTML += `<div class="accessibility-notes"><i class="fas fa-universal-access"></i>${step.note}</div>`;
+                    }
+                    
+                    li.innerHTML = stepHTML;
+                    stepList.appendChild(li);
+                });
+                
+                // Remove loading spinner
+                loadingSpinner.remove();
+                
+                // Update map iframe (in a real app, would center on the route)
+                // For demo, just update the map to show a sample route
+                const mapFrame = document.getElementById('map');
+                mapFrame.src = "https://www.google.com/maps/embed?pb=!1m28!1m12!1m3!1d9933.73051393744!2d-0.12108380332009298!3d51.50520094308188!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m13!3e2!4m5!1s0x487604c7c7cc8403%3A0x9e5b392c165d1fa8!2sTrafalgar%20Square%2C%20London!3m2!1d51.5080917!2d-0.1283!4m5!1s0x487604b900d26973%3A0x4291f3172409ea92!2slondon%20eye!3m2!1d51.503324!2d-0.119543!5e0!3m2!1sen!2suk!4v1591022407582!5m2!1sen!2suk";
+                
+                // Scroll to map view
+                document.querySelector('.map-wrapper').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 1500);
+        });
+    }
+}
+
+// Initialize accessibility features
+function initAccessibilityFeatures() {
+    // Set wheelchair accessibility as default in dropdown
+    const accessibilitySelect = document.getElementById('accessibility-needs');
+    if (accessibilitySelect) {
+        // Set default to wheelchair
+        if (accessibilitySelect.value === '') {
+            accessibilitySelect.value = 'wheelchair';
+        }
+        
+        // Add event listener to show toast when changed
+        accessibilitySelect.addEventListener('change', function() {
+            // Show reminder that all routes are wheelchair accessible by default
+            if (this.value !== 'wheelchair' && this.value !== '') {
+                showAccessibilityToast('All routes include wheelchair accessibility by default');
+            }
+        });
+    }
+    
+    // Add keyboard navigation for accessibility features
+    const accessibilityCommitment = document.querySelector('.accessibility-commitment');
+    if (accessibilityCommitment) {
+        accessibilityCommitment.setAttribute('tabindex', '0');
+        accessibilityCommitment.setAttribute('role', 'note');
+        accessibilityCommitment.setAttribute('aria-label', 'Accessibility commitment: All routes are wheelchair accessible by default');
+    }
+    
+    // Add ARIA labels to the search form for better screen reader support
+    const routeSearchForm = document.getElementById('route-search-form');
+    if (routeSearchForm) {
+        routeSearchForm.setAttribute('aria-label', 'Find wheelchair accessible routes');
+        
+        const startInput = document.getElementById('start');
+        const destinationInput = document.getElementById('destination');
+        
+        if (startInput) {
+            startInput.setAttribute('aria-label', 'Starting point for wheelchair accessible route');
+        }
+        
+        if (destinationInput) {
+            destinationInput.setAttribute('aria-label', 'Destination for wheelchair accessible route');
+        }
+    }
+    
+    // Add descriptive labels to social links
+    const socialLinks = document.querySelectorAll('.social-links a');
+    socialLinks.forEach(link => {
+        const icon = link.querySelector('i');
+        if (icon) {
+            let socialNetwork = '';
+            if (icon.classList.contains('fa-facebook')) socialNetwork = 'Facebook';
+            if (icon.classList.contains('fa-twitter')) socialNetwork = 'Twitter';
+            if (icon.classList.contains('fa-instagram')) socialNetwork = 'Instagram';
+            if (icon.classList.contains('fa-linkedin')) socialNetwork = 'LinkedIn';
+            
+            if (socialNetwork) {
+                link.setAttribute('aria-label', `Visit our ${socialNetwork} page`);
+            }
+        }
+    });
+}
+
+// Show accessibility toast message
+function showAccessibilityToast(message) {
+    // Check if toast container exists, create if not
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container';
+        document.body.appendChild(toastContainer);
+        
+        // Add toast container styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .toast-container {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 9999;
+            }
+            
+            .toast {
+                background-color: var(--primary-color);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                margin-top: 10px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                display: flex;
+                align-items: center;
+                max-width: 350px;
+                animation: fadeIn 0.3s ease, fadeOut 0.3s ease 4.7s;
+                opacity: 0;
+            }
+            
+            .toast.show {
+                opacity: 1;
+            }
+            
+            .toast i {
+                margin-right: 10px;
+                font-size: 18px;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(-20px); }
+            }
+            
+            body.dark-mode .toast {
+                background-color: var(--dark-primary);
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `
+        <i class="fas fa-wheelchair"></i>
+        <span>${message}</span>
+    `;
+    
+    // Add to container
+    toastContainer.appendChild(toast);
+    
+    // Show the toast
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 5000);
+} 
