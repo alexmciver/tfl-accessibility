@@ -6,6 +6,7 @@ $font-family-headings: 'Poppins', $font-family-sans;
 $font-size-base: 1rem;
 $font-size-xs: 0.75rem;    // 12px
 $font-size-sm: 0.875rem;   // 14px
+$font-size-md: 1rem;       // 16px
 $font-size-lg: 1.125rem;   // 18px
 $font-size-xl: 1.25rem;    // 20px
 $font-size-2xl: 1.5rem;    // 24px
@@ -27,7 +28,7 @@ $line-height-loose: 2;
 // Colors - Primary
 $primary-color: #00a19a;
 $primary-dark: #008580;
-$primary-light: #4dc0bb;
+$primary-color-light: #4dc0bb;
 $primary-rgb: 0, 161, 154;
 
 // Colors - Neutrals
@@ -68,6 +69,18 @@ $dark-primary: #4dc0bb;
 $dark-accent: #ffa76f;
 $dark-secondary: #7a7acd;
 
+// Text colors
+$text-color: $gray-900;
+$text-color-secondary: $gray-600;
+
+// Background colors
+$light-bg: #f5f7fa;
+$dark-bg: #2a2a2a;
+
+// Border colors
+$border-color: $gray-300;
+$border-color-dark: $gray-700;
+
 // Spacing
 $spacing-1: 0.25rem;   // 4px
 $spacing-2: 0.5rem;    // 8px
@@ -88,6 +101,7 @@ $border-radius: 0.5rem;      // 8px
 $border-radius-lg: 0.75rem;  // 12px
 $border-radius-xl: 1rem;     // 16px
 $border-radius-pill: 50rem;  // Pill shape
+$border-radius-full: 50%;    // Circle
 
 // Shadows
 $shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -122,7 +136,4 @@ $container-sm: 540px;
 $container-md: 720px;
 $container-lg: 960px;
 $container-xl: 1140px;
-$container-xxl: 1320px;
-
-// Make all variables available to other files that @use this module
-@forward 'variables'; 
+$container-xxl: 1320px; 

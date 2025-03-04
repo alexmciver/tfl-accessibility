@@ -1,3 +1,5 @@
+@use '../base/variables' as *;
+
 // Breakpoint mixins
 @mixin breakpoint-up($breakpoint) {
   @if $breakpoint == sm {
@@ -139,7 +141,7 @@
   border: 1px solid $primary-color;
   
   &:hover, &:focus {
-    background-color: rgba($primary-rgb, 0.05);
+    background-color: rgba($primary-color, 0.05);
     transform: translateY(-2px);
   }
   
@@ -162,7 +164,7 @@
 
 @mixin focus-ring {
   outline: none;
-  box-shadow: 0 0 0 3px rgba($primary-rgb, 0.5);
+  box-shadow: 0 0 0 3px rgba($primary-color, 0.5);
 }
 
 // Card mixin
@@ -202,16 +204,13 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  background-color: rgba($primary-rgb, 0.1);
+  background-color: rgba($primary-color, 0.1);
   color: $primary-color;
   margin-right: $spacing-3;
   font-size: $font-size-xl;
   
   @include dark-mode {
-    background-color: rgba($primary-rgb, 0.2);
+    background-color: rgba($primary-color, 0.2);
     color: $dark-primary;
   }
-}
-
-// Make all mixins available to other files that @use this module
-@forward 'mixins'; 
+} 

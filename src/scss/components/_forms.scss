@@ -44,7 +44,7 @@ select {
   &:focus {
     border-color: $primary-color;
     outline: none;
-    box-shadow: 0 0 0 3px rgba($primary-rgb, 0.2);
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
   }
   
   &:disabled {
@@ -68,7 +68,7 @@ select {
     
     &:focus {
       border-color: $dark-primary;
-      box-shadow: 0 0 0 3px rgba($primary-rgb, 0.3);
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.3);
     }
     
     &:disabled {
@@ -179,7 +179,7 @@ textarea {
     
     &:focus {
       outline: none;
-      box-shadow: 0 0 0 3px rgba($primary-rgb, 0.2);
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
     }
   }
 }
@@ -208,7 +208,7 @@ textarea {
     }
     
     &:focus ~ .checkmark {
-      box-shadow: 0 0 0 3px rgba($primary-rgb, 0.2);
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
     }
     
     @include dark-mode {
@@ -308,7 +308,7 @@ textarea {
       
       &:focus + .card-content {
         outline: none;
-        box-shadow: 0 0 0 3px rgba($primary-rgb, 0.2);
+        box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
       }
     }
     
@@ -357,11 +357,11 @@ textarea {
       border-color: $primary-color;
       
       .option-icon {
-        background-color: rgba($primary-rgb, 0.1);
+        background-color: rgba($primary-color, 0.1);
         color: $primary-color;
         
         @include dark-mode {
-          background-color: rgba($primary-rgb, 0.2);
+          background-color: rgba($primary-color, 0.2);
           color: $dark-primary;
         }
       }
