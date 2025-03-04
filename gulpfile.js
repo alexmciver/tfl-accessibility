@@ -1,5 +1,8 @@
 const gulp = require('gulp');
-const sass = require('gulp-sass')(require('sass'));
+// Use a different import approach for Sass
+const gulpSass = require('gulp-sass');
+const dartSass = require('sass');
+const sass = gulpSass(dartSass);
 const autoprefixer = require('gulp-autoprefixer');
 const cleanCSS = require('gulp-clean-css');
 const terser = require('gulp-terser');
@@ -53,7 +56,11 @@ function clean() {
 function styles() {
   return gulp.src(paths.styles.src)
     .pipe(sourcemaps.init())
-    .pipe(sass().on('error', sass.logError))
+    .pipe(sass({
+      outputStyle: 'compressed',
+      includePaths: ['src/scss'],
+      quietDeps: true // Suppress dependency deprecation warnings
+    }).on('error', sass.logError))
     .pipe(autoprefixer())
     .pipe(cleanCSS())
     .pipe(concat('main.min.css'))
