@@ -4,24 +4,26 @@
  */
 
 // Base styles
-@import 'base/variables';
-@import 'base/reset';
-@import 'base/typography';
+@use 'base/variables' as *;
+@use 'base/reset';
+@use 'base/typography';
 
 // Components
-@import 'components/buttons';
-@import 'components/forms';
-@import 'components/navigation';
-@import 'components/accessibility';
+@use 'components/buttons';
+@use 'components/forms';
+@use 'components/navigation';
+@use 'components/accessibility';
 
 // Layouts
-@import 'layouts/header';
-@import 'layouts/footer';
-@import 'layouts/map';
+@use 'layouts/header';
+@use 'layouts/footer';
+@use 'layouts/map';
 
 // Utils
-@import 'utils/mixins';
-@import 'utils/helpers';
+@use 'utils/mixins' as *;
+@use 'utils/helpers';
 
 // Legacy styles - to be migrated
-// @import 'base/legacy'; 
+// @use 'base/legacy' with (
+//   $legacy-styles: true
+// ); 

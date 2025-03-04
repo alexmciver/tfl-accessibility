@@ -8,6 +8,8 @@ const sourcemaps = require('gulp-sourcemaps');
 const imagemin = require('gulp-imagemin');
 const browserSync = require('browser-sync').create();
 const del = require('del');
+const gzip = require('gulp-gzip');
+const brotli = require('gulp-brotli');
 
 // File paths
 const paths = {
@@ -29,6 +31,19 @@ const paths = {
   }
 };
 
+// Compression options
+const compressionOptions = {
+  gzip: {
+    gzipOptions: { level: 9 },
+    extension: 'gz'
+  },
+  brotli: {
+    extension: 'br',
+    skipLarger: true,
+    quality: 11
+  }
+};
+
 // Clean dist folder
 function clean() {
   return del(['dist']);
@@ -47,6 +62,16 @@ function styles() {
     .pipe(browserSync.stream());
 }
 
+// Create compressed CSS versions
+function compressStyles() {
+  return gulp.src(`${paths.styles.dest}/**/*.css`)
+    .pipe(gzip(compressionOptions.gzip))
+    .pipe(gulp.dest(paths.styles.dest))
+    .pipe(gulp.src(`${paths.styles.dest}/**/*.css`))
+    .pipe(brotli(compressionOptions.brotli))
+    .pipe(gulp.dest(paths.styles.dest));
+}
+
 // Process JavaScript files
 function scripts() {
   return gulp.src(paths.scripts.src)
@@ -56,6 +81,16 @@ function scripts() {
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest(paths.scripts.dest))
     .pipe(browserSync.stream());
+}
+
+// Create compressed JS versions
+function compressScripts() {
+  return gulp.src(`${paths.scripts.dest}/**/*.js`)
+    .pipe(gzip(compressionOptions.gzip))
+    .pipe(gulp.dest(paths.scripts.dest))
+    .pipe(gulp.src(`${paths.scripts.dest}/**/*.js`))
+    .pipe(brotli(compressionOptions.brotli))
+    .pipe(gulp.dest(paths.scripts.dest));
 }
 
 // Optimize images
@@ -70,6 +105,16 @@ function html() {
   return gulp.src(paths.html.src)
     .pipe(gulp.dest(paths.html.dest))
     .pipe(browserSync.stream());
+}
+
+// Create compressed HTML versions
+function compressHtml() {
+  return gulp.src(`${paths.html.dest}/**/*.html`)
+    .pipe(gzip(compressionOptions.gzip))
+    .pipe(gulp.dest(paths.html.dest))
+    .pipe(gulp.src(`${paths.html.dest}/**/*.html`))
+    .pipe(brotli(compressionOptions.brotli))
+    .pipe(gulp.dest(paths.html.dest));
 }
 
 // Set up development server
@@ -134,11 +179,15 @@ const setup = gulp.series(
   convertCssToScss
 );
 
-// Development task
+// Development task (doesn't include compression for faster development)
 const dev = gulp.series(clean, gulp.parallel(styles, scripts, images, html), serve);
 
-// Build task
-const build = gulp.series(clean, gulp.parallel(styles, scripts, images, html));
+// Build task (includes compression for production)
+const build = gulp.series(
+  clean, 
+  gulp.parallel(styles, scripts, images, html),
+  gulp.parallel(compressStyles, compressScripts, compressHtml)
+);
 
 // Export tasks
 exports.clean = clean;
@@ -146,6 +195,9 @@ exports.styles = styles;
 exports.scripts = scripts;
 exports.images = images;
 exports.html = html;
+exports.compressStyles = compressStyles;
+exports.compressScripts = compressScripts;
+exports.compressHtml = compressHtml;
 exports.setup = setup;
 exports.serve = serve;
 exports.build = build;

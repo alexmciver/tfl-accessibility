@@ -1,3 +1,6 @@
+@use '../base/variables' as *;
+@use '../utils/mixins' as *;
+
 // Main content area layout
 .main-content {
   @include container;

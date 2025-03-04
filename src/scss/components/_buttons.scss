@@ -1,3 +1,6 @@
+@use '../base/variables' as *;
+@use '../utils/mixins' as *;
+
 // Primary Button
 .primary-button {
   @include button-primary;

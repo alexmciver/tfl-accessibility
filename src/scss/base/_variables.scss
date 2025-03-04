@@ -122,4 +122,7 @@ $container-sm: 540px;
 $container-md: 720px;
 $container-lg: 960px;
 $container-xl: 1140px;
-$container-xxl: 1320px; 
+$container-xxl: 1320px;
+
+// Make all variables available to other files that @use this module
+@forward 'variables'; 
