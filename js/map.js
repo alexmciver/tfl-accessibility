@@ -1,26 +1,32 @@
 // Map Functionality for Free Flow Routes
 document.addEventListener('DOMContentLoaded', function() {
-    // DOM Elements
-    const mapWrapper = document.querySelector('.map-wrapper');
-    const routeSummary = document.querySelector('.route-summary');
-    const routeSteps = document.querySelector('.route-steps');
-    const routeInfo = document.querySelector('.route-info');
-    const journeyStats = document.querySelector('.journey-stats');
-    const stepList = document.querySelector('.step-list');
-    const overlay = document.querySelector('.overlay');
-    const loadingOverlay = document.querySelector('.loading-overlay');
-    const zoomInBtn = document.getElementById('zoom-in');
-    const zoomOutBtn = document.getElementById('zoom-out');
-    const fullscreenBtn = document.getElementById('fullscreen');
-    const printBtn = document.getElementById('print-route');
-    const shareBtn = document.getElementById('share-route');
-    const saveBtn = document.getElementById('save-route');
-    const accessibilitySelect = document.getElementById('accessibility-needs');
-    const accessibilityCommitment = document.querySelector('.accessibility-commitment p');
+    // Initialize map functionality
+    initMap();
+});
 
-    // Update accessibility commitment text
-    if (accessibilityCommitment) {
-        accessibilityCommitment.innerHTML = '<strong>All routes are wheelchair accessible by default</strong> - we prioritize full accessibility in our journey planning';
+// Initialize map functionality
+function initMap() {
+    // Cache DOM elements
+    const elements = {
+        mapWrapper: document.querySelector('.map-wrapper'),
+        routeSummary: document.querySelector('.route-summary'),
+        routeSteps: document.querySelector('.route-steps'),
+        routeInfo: document.querySelector('.route-info'),
+        journeyStats: document.querySelector('.journey-stats'),
+        stepList: document.querySelector('.step-list'),
+        zoomInBtn: document.getElementById('zoom-in'),
+        zoomOutBtn: document.getElementById('zoom-out'),
+        fullscreenBtn: document.getElementById('fullscreen'),
+        printBtn: document.getElementById('print-route'),
+        shareBtn: document.getElementById('share-route'),
+        saveBtn: document.getElementById('save-route'),
+        accessibilitySelect: document.getElementById('accessibility-needs'),
+        accessibilityCommitment: document.querySelector('.accessibility-commitment p')
+    };
+
+    // Update accessibility commitment text if element exists
+    if (elements.accessibilityCommitment) {
+        elements.accessibilityCommitment.innerHTML = '<strong>All routes are wheelchair accessible by default</strong> - we prioritize full accessibility in our journey planning';
     }
 
     // Accessibility constants
@@ -109,55 +115,156 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     ];
 
-    // Initialize map functionality
-    function initMap() {
-        // Initialize with London center coordinates
-        if (mapWrapper) {
-            // Simulate map loading
+    // Set up zoom controls
+    setupZoomControls(elements);
+    
+    // Set up action buttons (print, share, save)
+    setupActionButtons(elements);
+
+    // Simulate route drawing on map
+    function simulateRouteDrawing() {
+        if (elements.loadingOverlay) {
+            elements.loadingOverlay.style.display = 'flex';
+            
             setTimeout(() => {
-                if (overlay) {
-                    // Hide overlay after 2 seconds to simulate initial loading
-                    setTimeout(() => {
-                        overlay.style.display = 'none';
-                    }, 2000);
-                }
-            }, 500);
+                elements.loadingOverlay.style.display = 'none';
+                showToast('Wheelchair accessible route loaded successfully');
+            }, 1200);
         }
     }
 
-    // Handle zoom functionality
-    function setupZoomControls() {
+    // Show toast messages
+    function showToast(message) {
+        // Check if toast container exists, create if not
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `
+            <i class="fas fa-info-circle"></i>
+            <span>${message}</span>
+        `;
+        
+        // Add to container
+        toastContainer.appendChild(toast);
+        
+        // Show the toast
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 100);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    // Setup route action buttons
+    function setupActionButtons({printBtn, shareBtn, saveBtn}) {
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                showToast('Printing route instructions...');
+                window.print();
+            });
+        }
+        
+        if (shareBtn) {
+            shareBtn.addEventListener('click', function() {
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Accessible Route Directions',
+                        text: 'Check out this accessible route I found!',
+                        url: window.location.href
+                    })
+                    .then(() => showToast('Route shared successfully'))
+                    .catch(() => showToast('Share cancelled'));
+                } else {
+                    // Fallback for browsers that don't support Web Share API
+                    showToast('Copy this link to share: ' + window.location.href);
+                    
+                    // Create temporary input to copy URL
+                    const tempInput = document.createElement('input');
+                    tempInput.value = window.location.href;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    
+                    showToast('Link copied to clipboard');
+                }
+            });
+        }
+        
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function() {
+                showToast('Route saved to your favorites');
+            });
+        }
+    }
+
+    // Set up zoom controls
+    function setupZoomControls({zoomInBtn, zoomOutBtn, fullscreenBtn, mapWrapper}) {
         if (zoomInBtn) {
             zoomInBtn.addEventListener('click', function() {
-                // Zoom in functionality - would interact with real map API
-                showToast('Zoomed in');
+                const mapFrame = document.getElementById('map');
+                // In a real implementation, this would zoom the map
+                // For now, just show a visual feedback
+                if (mapFrame) {
+                    mapFrame.classList.add('zoom-effect');
+                    setTimeout(() => mapFrame.classList.remove('zoom-effect'), 300);
+                }
+                
+                showToast('Zoom in functionality would be implemented here');
             });
         }
-
+        
         if (zoomOutBtn) {
             zoomOutBtn.addEventListener('click', function() {
-                // Zoom out functionality - would interact with real map API
-                showToast('Zoomed out');
+                const mapFrame = document.getElementById('map');
+                // In a real implementation, this would zoom out the map
+                if (mapFrame) {
+                    mapFrame.classList.add('zoom-out-effect');
+                    setTimeout(() => mapFrame.classList.remove('zoom-out-effect'), 300);
+                }
+                
+                showToast('Zoom out functionality would be implemented here');
             });
         }
-
-        if (fullscreenBtn) {
+        
+        if (fullscreenBtn && mapWrapper) {
             fullscreenBtn.addEventListener('click', function() {
-                toggleFullscreen();
+                toggleFullscreen(mapWrapper);
             });
         }
     }
 
-    // Toggle fullscreen mode
-    function toggleFullscreen() {
+    // Toggle fullscreen for the map
+    function toggleFullscreen(element) {
         if (!document.fullscreenElement) {
-            mapWrapper.requestFullscreen().catch(err => {
-                showToast(`Error attempting to enable fullscreen: ${err.message}`);
-            });
-            showToast('Fullscreen enabled');
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen();
+            }
         } else {
-            document.exitFullscreen();
-            showToast('Fullscreen disabled');
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
         }
     }
 
@@ -171,8 +278,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Update route info
-        if (routeInfo) {
-            routeInfo.innerHTML = `
+        if (elements.routeInfo) {
+            elements.routeInfo.innerHTML = `
                 <h3>${route.name}</h3>
                 <p>${route.description}</p>
                 <div class="accessibility-badge">
@@ -210,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }).join('');
         
         // Update steps list with accessibility notes
-        if (stepList) {
+        if (elements.stepList) {
             let stepsHtml = '';
             
             // Add accessibility icons section
@@ -243,88 +350,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
             
-            stepList.innerHTML = stepsHtml;
+            elements.stepList.innerHTML = stepsHtml;
         }
         
         // Simulate map display
         simulateRouteDrawing();
-    }
-
-    // Simulate route drawing on map
-    function simulateRouteDrawing() {
-        if (loadingOverlay) {
-            loadingOverlay.style.display = 'flex';
-            
-            setTimeout(() => {
-                loadingOverlay.style.display = 'none';
-                showToast('Wheelchair accessible route loaded successfully');
-            }, 1200);
-        }
-    }
-
-    // Show toast notification
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.classList.add('toast');
-        toast.textContent = message;
-        
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 100);
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => {
-                document.body.removeChild(toast);
-            }, 300);
-        }, 3000);
-    }
-
-    // Setup route action buttons
-    function setupActionButtons() {
-        if (printBtn) {
-            printBtn.addEventListener('click', function() {
-                showToast('Preparing to print wheelchair accessible route...');
-                // In a real app, this would open a print dialog with route details formatted for printing
-                window.print();
-            });
-        }
-
-        if (shareBtn) {
-            shareBtn.addEventListener('click', function() {
-                showToast('Sharing wheelchair accessible route options opened');
-                
-                // In a real app, this would open sharing options or a modal
-                if (navigator.share) {
-                    navigator.share({
-                        title: 'Free Flow Routes - Wheelchair Accessible Route',
-                        text: 'Check out this wheelchair accessible route I found!',
-                        url: window.location.href,
-                    })
-                    .catch((error) => showToast('Error sharing: ' + error));
-                } else {
-                    // Fallback for browsers that don't support the Web Share API
-                    prompt('Copy this link to share the wheelchair accessible route:', window.location.href);
-                }
-            });
-        }
-
-        if (saveBtn) {
-            saveBtn.addEventListener('click', function() {
-                showToast('Wheelchair accessible route saved to your favorites');
-                
-                // In a real app, this would save the route to user's account or local storage
-                // For demo, we'll just toggle a class
-                saveBtn.classList.toggle('saved');
-                if (saveBtn.classList.contains('saved')) {
-                    saveBtn.innerHTML = '<i class="fas fa-bookmark"></i> Saved';
-                } else {
-                    saveBtn.innerHTML = '<i class="far fa-bookmark"></i> Save';
-                }
-            });
-        }
     }
 
     // Simulate searching and finding routes
@@ -376,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     displayRouteDetails(selectedRoute);
                     
                     // Scroll to map
-                    mapWrapper.scrollIntoView({ behavior: 'smooth' });
+                    elements.mapWrapper.scrollIntoView({ behavior: 'smooth' });
                     
                     // Show success message
                     showToast('Wheelchair accessible route found!');
@@ -521,9 +551,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize all functionality
     function init() {
-        initMap();
-        setupZoomControls();
-        setupActionButtons();
         setupRouteSearch();
         addToastStyles();
         
@@ -578,4 +605,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Start the application
     init();
-}); 
+} 
