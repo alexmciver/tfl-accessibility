@@ -1,0 +1,145 @@
+@use '../base/variables' as *;
+@use '../utils/mixins' as *;
+
+// Primary Button
+.primary-button {
+  @include button-primary;
+}
+
+// Secondary Button
+.secondary-button {
+  @include button-secondary;
+}
+
+// Back to top button
+#back-to-top {
+  position: fixed;
+  bottom: $spacing-6;
+  right: $spacing-6;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background-color: $primary-color;
+  color: $white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: $transition-base;
+  box-shadow: $shadow-md;
+  border: none;
+  z-index: $z-index-fixed;
+  
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  &:hover, &:focus {
+    background-color: $primary-dark;
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
+  }
+  
+  &:active {
+    transform: translateY(-2px);
+  }
+  
+  i {
+    font-size: $font-size-lg;
+  }
+  
+  @include dark-mode {
+    background-color: $dark-primary;
+    color: $dark-background;
+  }
+  
+  @include breakpoint-down(md) {
+    bottom: $spacing-4;
+    right: $spacing-4;
+  }
+}
+
+// Reset button
+#reset-button {
+  @include button-secondary;
+  
+  &:hover, &:focus {
+    color: $primary-dark;
+  }
+}
+
+// Plan route button
+#plan-route {
+  @include button-primary;
+  width: 100%;
+  
+  @include breakpoint-up(md) {
+    width: auto;
+  }
+}
+
+// Button group
+.button-group {
+  display: flex;
+  gap: $spacing-4;
+  margin-top: $spacing-6;
+  flex-wrap: wrap;
+  
+  @include breakpoint-down(sm) {
+    flex-direction: column;
+  }
+}
+
+// Focus styles for all buttons
+button:focus {
+  @include focus-ring;
+}
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    cursor: pointer;
+    
+    &--primary {
+        background: var(--primary-color);
+        color: white;
+        
+        &:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+    }
+    
+    &--secondary {
+        background: transparent;
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        
+        &:hover {
+            background: rgba(var(--primary-rgb), 0.1);
+        }
+    }
+    
+    &--icon {
+        gap: 0.5rem;
+        
+        .icon {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+    }
+    
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+} 

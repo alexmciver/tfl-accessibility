@@ -1,0 +1,237 @@
+@use '../base/variables' as *;
+@use '../utils/mixins' as *;
+
+// Header
+header {
+  background-color: $primary-color;
+  padding: $spacing-4 0;
+  position: relative;
+  box-shadow: $shadow;
+  color: $white;
+  
+  @include dark-mode {
+    background-color: $dark-surface;
+    box-shadow: $shadow-md;
+  }
+}
+
+// Header content
+.header-content {
+  @include container;
+  @include flex-between;
+  
+  @include breakpoint-down(md) {
+    flex-wrap: wrap;
+    gap: $spacing-4;
+  }
+}
+
+// Logo container
+.logo-container {
+  display: flex;
+  align-items: center;
+  
+  .logo {
+    height: 2.5rem;
+    width: auto;
+    transition: $transition-base;
+    
+    &:hover {
+      transform: scale(1.05);
+    }
+    
+    &:focus {
+      @include focus-ring;
+      outline: none;
+    }
+  }
+}
+
+// Main navigation
+.main-nav {
+  @include breakpoint-down(md) {
+    order: 3;
+    width: 100%;
+  }
+  
+  ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: $spacing-6;
+    
+    @include breakpoint-down(md) {
+      flex-direction: column;
+      gap: $spacing-2;
+      
+      &:not(.show) {
+        display: none;
+      }
+    }
+  }
+  
+  li {
+    position: relative;
+  }
+  
+  a {
+    color: rgba($white, 0.9);
+    text-decoration: none;
+    font-weight: $font-weight-medium;
+    font-size: $font-size-base;
+    position: relative;
+    transition: $transition-base;
+    padding: $spacing-2 0;
+    display: inline-block;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: $white;
+      transition: $transition-base;
+      opacity: 0;
+    }
+    
+    &:hover, &:focus {
+      color: $white;
+      
+      &::after {
+        width: 100%;
+        opacity: 1;
+      }
+    }
+    
+    &.active {
+      color: $white;
+      font-weight: $font-weight-semibold;
+      
+      &::after {
+        width: 100%;
+        opacity: 1;
+      }
+    }
+    
+    @include breakpoint-down(md) {
+      display: block;
+      padding: $spacing-3;
+      border-radius: $border-radius-sm;
+      
+      &:hover, &:focus {
+        background-color: rgba($white, 0.1);
+      }
+      
+      &::after {
+        display: none;
+      }
+    }
+  }
+}
+
+// Menu toggle for mobile
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: $white;
+  font-size: $font-size-xl;
+  cursor: pointer;
+  padding: $spacing-2;
+  z-index: $z-index-dropdown;
+  
+  @include breakpoint-down(md) {
+    display: block;
+    margin-left: auto;
+  }
+  
+  &:focus {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+// Dark mode toggle
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+  margin-left: $spacing-4;
+  
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    
+    &:checked + .slider {
+      background-color: $gray-800;
+      
+      &:before {
+        transform: translateX(30px);
+      }
+      
+      .sun-icon {
+        display: block;
+      }
+      
+      .moon-icon {
+        display: none;
+      }
+    }
+    
+    &:focus + .slider {
+      box-shadow: 0 0 0 2px rgba($white, 0.5);
+    }
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: $gray-200;
+    transition: $transition-base;
+    border-radius: 30px;
+    
+    &:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 4px;
+      bottom: 4px;
+      background-color: $white;
+      transition: $transition-base;
+      border-radius: 50%;
+    }
+    
+    i {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: $font-size-sm;
+      transition: $transition-base;
+    }
+    
+    .sun-icon {
+      left: 8px;
+      color: $warning-color;
+      display: none;
+    }
+    
+    .moon-icon {
+      right: 8px;
+      color: $primary-color;
+    }
+  }
+  
+  @include breakpoint-down(sm) {
+    margin-left: 0;
+  }
+} 

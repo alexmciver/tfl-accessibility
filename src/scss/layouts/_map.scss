@@ -1,0 +1,213 @@
+@use '../base/variables' as *;
+
+// Map container
+.map-wrapper {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: $white;
+  
+  .map-controls {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 100;
+    
+    .map-control {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+      padding: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: white;
+        transform: translateY(-1px);
+      }
+    }
+  }
+  
+  iframe {
+    width: 100%;
+    height: 500px;
+    border: 0;
+  }
+}
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-4;
+  background-color: $gray-100;
+  border-bottom: 1px solid $gray-200;
+  
+  h2 {
+    margin-bottom: 0;
+    font-size: $font-size-xl;
+  }
+}
+
+.route-info {
+  font-size: $font-size-sm;
+  color: $gray-600;
+}
+
+// Map iframe
+#map {
+  width: 100%;
+  height: 400px;
+  border: none;
+  
+  @media (min-width: $breakpoint-md) {
+    height: 500px;
+  }
+  
+  @media (min-width: $breakpoint-lg) {
+    height: 600px;
+  }
+}
+
+// Map controls
+.map-controls {
+  display: flex;
+  gap: $spacing-2;
+  padding: $spacing-3;
+  background-color: $gray-100;
+  border-top: 1px solid $gray-200;
+}
+
+.map-control-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: $border-radius-sm;
+  background-color: $white;
+  color: $gray-700;
+  border: 1px solid $gray-300;
+  transition: $transition-base;
+  
+  &:hover, &:focus {
+    background-color: $gray-200;
+    color: $gray-900;
+  }
+}
+
+// Loading spinner
+.spinner {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba($white, 0.9);
+  padding: $spacing-4;
+  border-radius: $border-radius;
+  box-shadow: $shadow-lg;
+  z-index: $z-index-modal;
+  text-align: center;
+  
+  i {
+    margin-right: $spacing-2;
+    color: $primary-color;
+  }
+}
+
+// Overlay
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba($white, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  
+  &.hidden {
+    display: none;
+  }
+}
+
+.overlay-content {
+  text-align: center;
+  max-width: 400px;
+  padding: $spacing-6;
+  
+  h2 {
+    margin-top: $spacing-4;
+    margin-bottom: $spacing-2;
+  }
+  
+  p {
+    color: $gray-600;
+  }
+}
+
+.overlay-icon {
+  font-size: 48px;
+  color: $primary-color;
+}
+
+// Dark mode adjustments
+body.dark-mode {
+  .map-wrapper {
+    background-color: $dark-surface;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  .map-header {
+    background-color: $dark-background;
+    border-bottom: 1px solid $gray-800;
+  }
+  
+  .route-info {
+    color: $gray-400;
+  }
+  
+  .map-controls {
+    background-color: $dark-background;
+    border-top: 1px solid $gray-800;
+  }
+  
+  .map-control-button {
+    background-color: $dark-surface;
+    color: $gray-300;
+    border: 1px solid $gray-700;
+    
+    &:hover, &:focus {
+      background-color: lighten($dark-surface, 5%);
+      color: $white;
+    }
+  }
+  
+  .spinner {
+    background-color: rgba($dark-background, 0.9);
+    color: $gray-200;
+    
+    i {
+      color: $dark-primary;
+    }
+  }
+  
+  .overlay {
+    background-color: rgba($dark-background, 0.9);
+  }
+  
+  .overlay-content {
+    p {
+      color: $gray-400;
+    }
+  }
+  
+  .overlay-icon {
+    color: $dark-primary;
+  }
+} 

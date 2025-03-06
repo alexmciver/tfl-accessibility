@@ -1,0 +1,418 @@
+@use '../base/variables' as *;
+@use '../utils/mixins' as *;
+
+// Form group
+.form-group {
+  margin-bottom: 1.5rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+    
+    @include dark-mode {
+      color: $gray-200;
+    }
+  }
+  
+  input, select, textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    transition: border-color 0.2s ease;
+    
+    &:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+  }
+  
+  &.has-error {
+    input, select, textarea {
+      border-color: var(--error-color);
+    }
+  }
+  
+  .error-message {
+    color: var(--error-color);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+}
+
+// Input styles
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
+textarea,
+select {
+  width: 100%;
+  padding: $spacing-3;
+  border: 1px solid $gray-300;
+  border-radius: $border-radius;
+  background-color: $white;
+  color: $gray-900;
+  font-size: $font-size-base;
+  line-height: $line-height-normal;
+  transition: $transition-base;
+  
+  &:focus {
+    border-color: $primary-color;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
+  }
+  
+  &:disabled {
+    background-color: $gray-100;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  &.error {
+    border-color: $danger-color;
+    
+    &:focus {
+      box-shadow: 0 0 0 3px rgba($danger-color, 0.2);
+    }
+  }
+  
+  @include dark-mode {
+    background-color: $dark-surface;
+    border-color: $gray-700;
+    color: $white;
+    
+    &:focus {
+      border-color: $dark-primary;
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.3);
+    }
+    
+    &:disabled {
+      background-color: rgba($gray-800, 0.5);
+    }
+    
+    &.error {
+      border-color: lighten($danger-color, 10%);
+      
+      &:focus {
+        box-shadow: 0 0 0 3px rgba($danger-color, 0.3);
+      }
+    }
+  }
+}
+
+// Select styles
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right $spacing-3 center;
+  padding-right: $spacing-8;
+  
+  @include dark-mode {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23adb5bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  }
+}
+
+// Textarea styles
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+// Input with icon
+.input-with-icon {
+  position: relative;
+  
+  input, select {
+    padding-left: $spacing-8;
+  }
+  
+  i {
+    position: absolute;
+    left: $spacing-3;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $gray-600;
+    font-size: $font-size-lg;
+    pointer-events: none;
+    
+    @include dark-mode {
+      color: $gray-400;
+    }
+  }
+  
+  &.start-icon {
+    color: $primary-color;
+    
+    @include dark-mode {
+      color: $dark-primary;
+    }
+  }
+  
+  &.end-icon {
+    color: $accent-color;
+    
+    @include dark-mode {
+      color: $dark-accent;
+    }
+  }
+}
+
+// Form validation
+.error-message {
+  display: block;
+  color: $danger-color;
+  font-size: $font-size-sm;
+  margin-top: $spacing-1;
+  
+  @include dark-mode {
+    color: lighten($danger-color, 15%);
+  }
+}
+
+// Checkbox and radio styles
+.checkbox-group,
+.radio-group {
+  margin-bottom: $spacing-3;
+  
+  label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: $spacing-2;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  input[type="checkbox"],
+  input[type="radio"] {
+    margin-right: $spacing-2;
+    width: 18px;
+    height: 18px;
+    
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
+    }
+  }
+}
+
+// Custom checkbox
+.custom-checkbox {
+  position: relative;
+  padding-left: 30px;
+  cursor: pointer;
+  user-select: none;
+  
+  input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+    
+    &:checked ~ .checkmark {
+      background-color: $primary-color;
+      border-color: $primary-color;
+      
+      &:after {
+        display: block;
+      }
+    }
+    
+    &:focus ~ .checkmark {
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
+    }
+    
+    @include dark-mode {
+      &:checked ~ .checkmark {
+        background-color: $dark-primary;
+        border-color: $dark-primary;
+      }
+    }
+  }
+  
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background-color: $white;
+    border: 1px solid $gray-400;
+    border-radius: $border-radius-sm;
+    transition: $transition-base;
+    
+    &:after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 7px;
+      top: 3px;
+      width: 5px;
+      height: 10px;
+      border: solid $white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    
+    @include dark-mode {
+      background-color: $dark-surface;
+      border-color: $gray-600;
+    }
+  }
+  
+  &:hover input ~ .checkmark {
+    border-color: $gray-600;
+    
+    @include dark-mode {
+      border-color: $gray-400;
+    }
+  }
+}
+
+// Form actions
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-3;
+  margin-top: $spacing-6;
+  
+  @include breakpoint-down(sm) {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
+}
+
+// Accessibility-specific form elements
+.accessibility-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: $spacing-3;
+  margin-top: $spacing-4;
+  
+  .option-card {
+    border: 1px solid $gray-300;
+    border-radius: $border-radius;
+    padding: $spacing-3;
+    cursor: pointer;
+    transition: $transition-base;
+    position: relative;
+    
+    input[type="checkbox"],
+    input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      
+      &:checked + .card-content {
+        .option-icon {
+          background-color: $primary-color;
+          color: $white;
+        }
+        
+        .option-title {
+          color: $primary-color;
+          font-weight: $font-weight-semibold;
+        }
+      }
+      
+      &:focus + .card-content {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
+      }
+    }
+    
+    .card-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .option-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: $gray-100;
+      color: $gray-700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: $spacing-2;
+      transition: $transition-base;
+      font-size: $font-size-xl;
+      
+      @include dark-mode {
+        background-color: $gray-800;
+        color: $gray-300;
+      }
+    }
+    
+    .option-title {
+      font-weight: $font-weight-medium;
+      margin-bottom: $spacing-1;
+      transition: $transition-base;
+    }
+    
+    .option-description {
+      font-size: $font-size-sm;
+      color: $gray-600;
+      
+      @include dark-mode {
+        color: $gray-400;
+      }
+    }
+    
+    &:hover {
+      border-color: $primary-color;
+      
+      .option-icon {
+        background-color: rgba($primary-color, 0.1);
+        color: $primary-color;
+        
+        @include dark-mode {
+          background-color: rgba($primary-color, 0.2);
+          color: $dark-primary;
+        }
+      }
+    }
+    
+    @include dark-mode {
+      border-color: $gray-700;
+      background-color: $dark-surface;
+      
+      &:hover {
+        border-color: $dark-primary;
+      }
+      
+      input[type="checkbox"]:checked + .card-content,
+      input[type="radio"]:checked + .card-content {
+        .option-icon {
+          background-color: $dark-primary;
+        }
+        
+        .option-title {
+          color: $dark-primary;
+        }
+      }
+    }
+  }
+} 
