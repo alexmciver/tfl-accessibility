@@ -1,13 +1,14 @@
 /** @type {import('next').NextConfig} */
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
-  skipWaiting: true,
-});
-
 const nextConfig = {
   reactStrictMode: true,
+  webpack: (config) => {
+    // Mapbox GL configuration
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'mapbox-gl': 'mapbox-gl',
+    };
+    return config;
+  },
   images: {
     domains: ['www.tfl.gov.uk'],
   },
@@ -17,6 +18,12 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  typescript: {
+    // !! WARN !!
+    // During development, type checking is handled by the IDE
+    // This is only for production builds
+    ignoreBuildErrors: false,
+  },
 };
 
-module.exports = withPWA(nextConfig); 
+module.exports = nextConfig; 

@@ -87,6 +87,25 @@ npm run build
 yarn build
 ```
 
+## TypeScript Setup
+
+This project uses TypeScript for type safety. The following type declarations have been set up:
+
+- **React Types**: Custom declarations for React hooks and components in `src/types/react.d.ts`
+- **Next.js Types**: Type definitions for Next.js features in `src/types/next.d.ts`
+- **Third-party Libraries**: Type declarations for libraries like next-themes, framer-motion, etc. in `src/types/third-party.d.ts`
+- **Testing Types**: Jest and Testing Library type definitions in `src/types/testing.d.ts`
+- **Node.js Types**: NodeJS-specific types in `src/types/nodejs.d.ts`
+
+### State Management
+
+The application uses Zustand for state management with two main stores:
+
+1. **Journey Store** (`useJourneyStore.ts`): Manages journey planning state, history, and preferences
+2. **Station Store** (`useStationStore.ts`): Handles station data, search, and selection
+
+Both stores are configured with persistence to maintain state across page reloads.
+
 ## License
 
 MIT 

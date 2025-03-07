@@ -22,7 +22,7 @@ interface StationState {
   getStationById: (id: string) => Station | undefined;
 }
 
-export const useStationStore = create<StationState>()(
+export const useStationStore = create<StationState>(
   persist(
     (set, get) => ({
       // Initial state
@@ -34,39 +34,40 @@ export const useStationStore = create<StationState>()(
       searchQuery: '',
       
       // Actions
-      setStations: (stations) => set({ stations }),
+      setStations: (stations: Station[]) => set({ stations }),
       
-      setStartStation: (stationId) => set({ startStation: stationId }),
+      setStartStation: (stationId: string | null) => set({ startStation: stationId }),
       
-      setEndStation: (stationId) => set({ endStation: stationId }),
+      setEndStation: (stationId: string | null) => set({ endStation: stationId }),
       
-      setStationsLoading: (loading) => set({ stationsLoading: loading }),
+      setStationsLoading: (loading: boolean) => set({ stationsLoading: loading }),
       
-      setStationsError: (error) => set({ stationsError: error }),
+      setStationsError: (error: string | null) => set({ stationsError: error }),
       
-      setSearchQuery: (query) => set({ searchQuery: query }),
+      setSearchQuery: (query: string) => set({ searchQuery: query }),
       
       getFilteredStations: () => {
-        const { stations, searchQuery } = get();
+        const state = get() as StationState;
+        const { stations, searchQuery } = state;
         
         if (!searchQuery.trim()) {
           return stations;
         }
         
         const query = searchQuery.toLowerCase().trim();
-        return stations.filter(station => 
+        return stations.filter((station: Station) => 
           station.name.toLowerCase().includes(query)
         );
       },
       
-      getStationById: (id) => {
-        return get().stations.find(station => station.id === id);
+      getStationById: (id: string) => {
+        const state = get() as StationState;
+        return state.stations.find((station: Station) => station.id === id);
       }
     }),
     {
-      name: 'station-store', // name of the item in the storage
-      partialize: (state) => ({ 
-        // Only persist these fields
+      name: 'station-store',
+      partialize: (state: StationState) => ({ 
         startStation: state.startStation,
         endStation: state.endStation
       })

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Journey } from '../../hooks/useJourneyStore';
 
 interface RouteDetailsProps {
@@ -70,7 +70,7 @@ export default function RouteDetails({ journey }: RouteDetailsProps) {
       <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
         <h4 className="font-medium mb-2">Journey Details</h4>
         <ul className="space-y-4">
-          {routeDetails.map((leg, index) => (
+          {routeDetails.map((leg: any, index: number) => (
             <li key={index} className="flex">
               <div className="mr-3 relative">
                 <div className={`h-6 w-6 rounded-full flex items-center justify-center 

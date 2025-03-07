@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStationStore } from '../../hooks/useStationStore';
-import { getStationAccessibility } from '../../lib/api/tfl';
+import { getStationAccessibility, StationAccessibility } from '../../lib/api/tfl';
+import { getAccessibilityColorClasses, getAccessibilitySummary } from '../../lib/api/accessibility';
 
 interface StationSelectProps {
   id: string;
@@ -21,9 +22,9 @@ export default function StationSelect({
   icon,
   required = false
 }: StationSelectProps) {
-  const { getFilteredStations } = useStationStore();
-  const filteredStations = getFilteredStations();
-  const [stationAccessibility, setStationAccessibility] = useState<any>(null);
+  const stationStore = useStationStore();
+  const filteredStations = stationStore.getFilteredStations();
+  const [stationAccessibility, setStationAccessibility] = useState<StationAccessibility | null>(null);
   const [isLoadingAccessibility, setIsLoadingAccessibility] = useState(false);
 
   // When a station is selected, fetch its accessibility info
@@ -98,7 +99,7 @@ export default function StationSelect({
           required={required}
         >
           <option value="">Select a station</option>
-          {filteredStations.map(station => (
+          {filteredStations.map((station: any) => (
             <option key={station.id} value={station.id}>
               {station.name}
             </option>
