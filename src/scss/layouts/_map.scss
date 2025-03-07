@@ -2,11 +2,20 @@
 
 // Map container
 .map-wrapper {
-  position: relative;
-  border-radius: 12px;
+  width: 90%;
+  max-width: 1000px;
+  margin: 2rem auto;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background-color: $white;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  background-color: var(--background-white);
+  transform: translateY(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  }
   
   .map-controls {
     position: absolute;
@@ -38,28 +47,53 @@
 }
 
 .map-header {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  padding: 1.25rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: $spacing-4;
-  background-color: $gray-100;
-  border-bottom: 1px solid $gray-200;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-color), var(--primary-light));
+    opacity: 0.7;
+  }
   
   h2 {
     margin-bottom: 0;
-    font-size: $font-size-xl;
+    font-size: var(--text-xl);
+    font-weight: 600;
+    letter-spacing: -0.5px;
   }
 }
 
+.route-title {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
 .route-info {
-  font-size: $font-size-sm;
-  color: $gray-600;
+  font-size: var(--text-sm);
+  padding: 0.25rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-weight: 500;
+  backdrop-filter: blur(5px);
 }
 
 // Map iframe
 #map {
   width: 100%;
-  height: 400px;
+  height: 500px;
   border: none;
   
   @media (min-width: $breakpoint-md) {
@@ -105,17 +139,93 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: rgba($white, 0.9);
-  padding: $spacing-4;
-  border-radius: $border-radius;
-  box-shadow: $shadow-lg;
-  z-index: $z-index-modal;
-  text-align: center;
+  background-color: var(--background-white);
+  color: var(--text-color);
+  padding: 1.75rem;
+  border-radius: 16px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  width: 320px;
+  max-width: 90vw;
+  text-align: left;
+  transition: all 0.3s ease;
+  border-top: 4px solid var(--primary-color);
   
-  i {
-    margin-right: $spacing-2;
-    color: $primary-color;
+  .spinner-content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
   }
+  
+  .spinner-icon {
+    background-color: var(--primary-color);
+    color: white;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.2);
+    
+    i {
+      font-size: 1.75rem;
+    }
+  }
+  
+  .spinner-text {
+    flex-grow: 1;
+    
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 1.25rem;
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+  }
+  
+  .spinner-message {
+    margin: 0 0 15px 0;
+    font-size: 0.95rem;
+    opacity: 0.8;
+    line-height: 1.5;
+  }
+  
+  .progress-bar {
+    height: 8px;
+    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 12px;
+    
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary-color);
+      border-radius: 4px;
+      width: 0%;
+      animation: progress-animation 2s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes progress-animation {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  80% { width: 90%; }
+  100% { width: 95%; }
+}
+
+// Animation for the spinner icon
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.fa-pulse {
+  animation: pulse 1.5s ease infinite;
 }
 
 // Overlay
@@ -159,17 +269,16 @@
 // Dark mode adjustments
 body.dark-mode {
   .map-wrapper {
-    background-color: $dark-surface;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    background-color: var(--dark-surface);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
   }
   
   .map-header {
-    background-color: $dark-background;
-    border-bottom: 1px solid $gray-800;
+    background-color: var(--dark-background);
   }
   
   .route-info {
-    color: $gray-400;
+    color: var(--text-light);
   }
   
   .map-controls {
@@ -189,11 +298,24 @@ body.dark-mode {
   }
   
   .spinner {
-    background-color: rgba($dark-background, 0.9);
-    color: $gray-200;
+    background-color: var(--dark-surface);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    border-top-color: var(--primary-light);
     
-    i {
-      color: $dark-primary;
+    .spinner-text h3 {
+      color: var(--primary-light);
+    }
+    
+    .spinner-message {
+      color: var(--text-light);
+    }
+    
+    .progress-bar {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .progress-fill {
+      background-color: var(--primary-light);
     }
   }
   
@@ -203,11 +325,33 @@ body.dark-mode {
   
   .overlay-content {
     p {
-      color: $gray-400;
+      color: var(--text-light);
     }
   }
   
   .overlay-icon {
     color: $dark-primary;
+  }
+}
+
+// Responsive map styling
+@media (max-width: 768px) {
+  #map {
+    height: 400px;
+  }
+  
+  .map-header {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    .route-info {
+      margin-top: 0.5rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  #map {
+    height: 300px;
   }
 } 

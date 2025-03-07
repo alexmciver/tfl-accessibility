@@ -243,4 +243,122 @@
       }
     }
   }
+}
+
+/* Hero Section Enhancement */
+.hero-section {
+  width: 100%;
+  background-color: var(--primary-color);
+  background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: var(--text-light);
+  padding: 4rem 1rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.8s ease forwards;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('data:image/svg+xml;utf8,<svg width="200" height="200" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 0 L100 50 L50 100 L0 50 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+    background-size: 100px 100px;
+    opacity: 0.1;
+  }
+  
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+  
+  h1 {
+    font-size: var(--text-4xl);
+    margin-bottom: 1.2rem;
+    font-weight: 700;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.5px;
+  }
+  
+  .subtitle {
+    font-size: var(--text-xl);
+    opacity: 0.92;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+}
+
+/* Page load animations */
+@keyframes fadeInUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure accessibility is maintained */
+@media (prefers-reduced-motion: reduce) {
+  .hero-section,
+  .journey-planner,
+  #map-container,
+  .overlay-content,
+  .loading-bar {
+    animation: none !important;
+    transition: opacity 0.1s linear !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Dark mode for hero section */
+body.dark-mode {
+  .hero-section {
+    background-image: linear-gradient(135deg, var(--dark-surface) 0%, #000 100%);
+  }
+}
+
+/* Responsive design for the hero section */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 3rem 1rem;
+    
+    h1 {
+      font-size: var(--text-3xl);
+    }
+    
+    .subtitle {
+      font-size: var(--text-base);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    padding: 2rem 1rem;
+    
+    h1 {
+      font-size: var(--text-2xl);
+    }
+  }
 } 

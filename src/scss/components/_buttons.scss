@@ -84,13 +84,53 @@
 // Button group
 .button-group {
   display: flex;
-  gap: $spacing-4;
-  margin-top: $spacing-6;
-  flex-wrap: wrap;
+  gap: 1.2rem;
+  margin-top: 2.5rem;
+}
+
+.primary-button, .secondary-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  box-shadow: 0 4px 8px rgba(var(--primary-rgb), 0.2);
+}
+
+.primary-button {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  border: 1px solid var(--primary-color);
   
-  @include breakpoint-down(sm) {
-    flex-direction: column;
+  &:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(var(--primary-rgb), 0.25);
   }
+}
+
+.secondary-button {
+  background-color: rgba(var(--primary-rgb), 0.05);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  box-shadow: 0 4px 8px rgba(var(--primary-rgb), 0.1);
+  
+  &:hover {
+    background-color: rgba(var(--primary-rgb), 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(var(--primary-rgb), 0.15);
+  }
+}
+
+.primary-button:active, 
+.secondary-button:active {
+  transform: translateY(-1px);
 }
 
 // Focus styles for all buttons
@@ -142,4 +182,63 @@ button:focus {
         opacity: 0.6;
         cursor: not-allowed;
     }
+}
+
+/* Dark mode button styles */
+body.dark-mode {
+  .primary-button {
+    background-color: var(--primary-color);
+    
+    &:hover {
+      background-color: var(--primary-dark);
+    }
+  }
+  
+  .secondary-button {
+    color: var(--primary-light);
+    border-color: var(--primary-light);
+    background-color: rgba(var(--primary-light-rgb), 0.05);
+    
+    &:hover {
+      background-color: rgba(var(--primary-light-rgb), 0.1);
+    }
+  }
+  
+  #back-to-top {
+    background-color: var(--primary-dark);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    
+    &:hover {
+      background-color: var(--primary-color);
+    }
+  }
+}
+
+/* Responsive buttons */
+@media (max-width: 768px) {
+  .button-group {
+    flex-direction: column;
+  }
+  
+  .primary-button, 
+  .secondary-button {
+    width: 100%;
+  }
+  
+  #back-to-top {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+    bottom: 1rem;
+    right: 1rem;
+  }
+}
+
+/* Ensure accessibility for animation reductions */
+@media (prefers-reduced-motion: reduce) {
+  .primary-button:hover,
+  .secondary-button:hover,
+  #back-to-top:hover {
+    transform: none !important;
+  }
 } 

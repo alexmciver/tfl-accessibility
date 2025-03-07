@@ -130,17 +130,28 @@ function initOverlay() {
     const overlay = document.querySelector('.overlay');
     
     if (overlay) {
-        // Close overlay when clicking anywhere
-        overlay.addEventListener('click', function() {
-            overlay.style.display = 'none';
-        });
-        
-        // Close overlay with ESC key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && overlay.style.display !== 'none') {
-                overlay.style.display = 'none';
-            }
-        });
+        // Initialize the overlay
+        setTimeout(() => {
+            // Close overlay when clicking anywhere
+            overlay.addEventListener('click', function() {
+                overlay.classList.add('hidden');
+                // Completely remove it after transition completes
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 500);
+            });
+            
+            // Close overlay with ESC key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && !overlay.classList.contains('hidden')) {
+                    overlay.classList.add('hidden');
+                    // Completely remove it after transition completes
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 500);
+                }
+            });
+        }, 1000); // Small delay for dramatic effect
     }
 }
 
