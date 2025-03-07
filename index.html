@@ -6,27 +6,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Free Flow Routes - Accessible Journey Planner</title>
   <meta name="description" content="Plan accessible journeys on London public transport with step-free access information.">
+  <meta name="keywords" content="accessible travel, london transport, step-free access, wheelchair accessible, journey planner">
+  <meta name="author" content="Free Flow Routes">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://www.freeflowroutes.com/index.html">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.freeflowroutes.com/">
+  <meta property="og:title" content="Free Flow Routes - Accessible Journey Planner">
+  <meta property="og:description" content="Plan accessible journeys on London public transport with step-free access information.">
+  <meta property="og:image" content="https://www.freeflowroutes.com/assets/images/og-image.jpg">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://www.freeflowroutes.com/">
+  <meta property="twitter:title" content="Free Flow Routes - Accessible Journey Planner">
+  <meta property="twitter:description" content="Plan accessible journeys on London public transport with step-free access information.">
+  <meta property="twitter:image" content="https://www.freeflowroutes.com/assets/images/twitter-image.jpg">
+  
+  <!-- Favicon -->
   <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <!-- Resource Hints -->
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Preload Critical Resources -->
+  <link rel="preload" href="assets/images/freeflowroutes-logo.png" as="image">
+  <link rel="preload" href="css/style.css" as="style">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  
+  <!-- Print Stylesheet -->
+  <link rel="stylesheet" href="css/print.css" media="print">
+  
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Free Flow Routes",
+      "url": "https://www.freeflowroutes.com",
+      "description": "Plan accessible journeys on London public transport with step-free access information.",
+      "applicationCategory": "Transportation",
+      "operatingSystem": "Web"
+    }
+  </script>
 </head>
 <body>
-  <a href="#main-content" class="skip-link">Skip to content</a>
-  <header>
+  <!-- Skip Link -->
+  <a href="#main-content" class="skip-link" tabindex="0">Skip to content</a>
+  
+  <!-- Site-wide Announcements -->
+  <div id="announcements" class="announcements" role="region" aria-live="polite"></div>
+  
+  <!-- Cookie Consent Banner -->
+  <div id="cookie-consent" class="cookie-banner" role="alert">
+    <div class="cookie-content">
+      <p>We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.</p>
+      <div class="cookie-buttons">
+        <button id="accept-cookies" class="cookie-button">Accept</button>
+        <button id="reject-cookies" class="cookie-button">Reject</button>
+        <a href="privacy.html" class="cookie-link">Learn More</a>
+      </div>
+    </div>
+  </div>
+  
+  <header role="banner">
     <div class="header-content">
       <div class="logo-container">
-        <img class="logo" src="assets/images/freeflowroutes-logo.png" alt="Free Flow Routes Logo" />
+        <img class="logo" src="assets/images/freeflowroutes-logo.png" alt="Free Flow Routes Logo - Accessible journey planner for London" width="200" height="60" />
       </div>
       <nav class="main-nav" aria-label="Main navigation">
         <button class="menu-toggle" aria-expanded="false" aria-controls="main-menu" aria-label="Toggle menu">
           <i class="fas fa-bars"></i>
+          <span class="menu-label">Menu</span>
         </button>
-        <ul id="main-menu">
-          <li><a href="index.html" class="active">Journey Planner</a></li>
-          <li><a href="accessibility.html">Accessibility Guide</a></li>
+        <ul id="main-menu" role="menubar">
+          <li role="none"><a href="index.html" class="active" role="menuitem">Journey Planner</a></li>
+          <li role="none"><a href="accessibility.html" role="menuitem">Accessibility Guide</a></li>
+          <li role="none"><a href="contact.html" role="menuitem">Contact Us</a></li>
         </ul>
       </nav>
       <label class="switch" for="dark-mode-toggle">
@@ -39,7 +106,15 @@
     </div>
   </header>
   
-  <main id="main-content">
+  <main id="main-content" role="main">
+    <!-- Breadcrumbs -->
+    <nav aria-label="Breadcrumb" class="breadcrumbs">
+      <ol>
+        <li><a href="index.html">Home</a></li>
+        <li aria-current="page">Journey Planner</li>
+      </ol>
+    </nav>
+    
     <div class="hero-section">
       <div class="hero-content">
         <h1>Plan Your Accessible Journey</h1>
@@ -47,87 +122,126 @@
       </div>
     </div>
     
-    <section class="journey-planner">
-      <h2>Journey Planner</h2>
+    <section class="journey-planner" aria-labelledby="journey-planner-heading">
+      <h2 id="journey-planner-heading">Journey Planner</h2>
       <div class="accessibility-commitment">
-        <p><i class="fas fa-wheelchair"></i> <strong>Accessibility Information</strong> - We provide station accessibility details to help you plan your journey</p>
+        <p><i class="fas fa-wheelchair" aria-hidden="true"></i> <strong>Accessibility Information</strong> - We provide station accessibility details to help you plan your journey</p>
       </div>
-      <div class="form-group">
-        <label for="start-station">Start Station:</label>
+      
+      <!-- Search Feature -->
+      <div class="search-container">
+        <label for="station-search">Search Stations:</label>
         <div class="input-with-icon">
-          <i class="fas fa-map-marker-alt start-icon"></i>
-          <select id="start-station" aria-label="Select start station"></select>
-        </div>
-        <span id="start-accessibility" class="accessibility-info" aria-live="polite"></span>
-      </div>
-      
-      <div class="form-group">
-        <label for="end-station">End Station:</label>
-        <div class="input-with-icon">
-          <i class="fas fa-flag end-icon"></i>
-          <select id="end-station" aria-label="Select end station"></select>
-        </div>
-        <span id="end-accessibility" class="accessibility-info" aria-live="polite"></span>
-      </div>
-      
-      <div class="form-group">
-        <label for="route-preference">Route Preference:</label>
-        <div class="route-preferences">
-          <div class="preference-option">
-            <input type="radio" id="best-route" name="route-preference" value="best" checked>
-            <label for="best-route">Best route</label>
-          </div>
-          <div class="preference-option">
-            <input type="radio" id="fewer-transfers" name="route-preference" value="fewer_transfers">
-            <label for="fewer-transfers">Fewer transfers</label>
-          </div>
-          <div class="preference-option">
-            <input type="radio" id="less-walking" name="route-preference" value="less_walking">
-            <label for="less-walking">Less walking</label>
-          </div>
-          <div class="preference-option wheelchair-option">
-            <input type="checkbox" id="wheelchair-accessible" name="wheelchair-accessible" checked>
-            <label for="wheelchair-accessible">Show accessibility info</label>
-          </div>
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <input type="text" id="station-search" placeholder="Enter station name..." aria-label="Search for stations">
         </div>
       </div>
       
-      <div class="accessibility-note">
-        <p><i class="fas fa-info-circle"></i> <strong>Important:</strong> The Google Maps API doesn't directly support wheelchair-specific routes. We provide station accessibility information, but the routes shown are standard transit routes. Always check with transport providers for specific accessibility features.</p>
-      </div>
-      
-      <div class="button-group">
-        <button id="plan-route" class="primary-button" aria-label="Show route">
-          <i class="fas fa-route"></i> Show Route
-        </button>
-        <button id="reset-button" class="secondary-button" aria-label="Reset selections">
-          <i class="fas fa-undo"></i> Reset Route
-        </button>
-      </div>
+      <form id="journey-form" aria-labelledby="journey-planner-heading">
+        <div class="form-group">
+          <label for="start-station">Start Station:</label>
+          <div class="input-with-icon">
+            <i class="fas fa-map-marker-alt start-icon" aria-hidden="true"></i>
+            <select id="start-station" aria-label="Select start station" required>
+              <option value="">Select a station</option>
+            </select>
+          </div>
+          <span id="start-accessibility" class="accessibility-info" aria-live="polite"></span>
+          <div class="error-message" id="start-station-error"></div>
+        </div>
+        
+        <div class="form-group">
+          <label for="end-station">End Station:</label>
+          <div class="input-with-icon">
+            <i class="fas fa-flag end-icon" aria-hidden="true"></i>
+            <select id="end-station" aria-label="Select end station" required>
+              <option value="">Select a station</option>
+            </select>
+          </div>
+          <span id="end-accessibility" class="accessibility-info" aria-live="polite"></span>
+          <div class="error-message" id="end-station-error"></div>
+        </div>
+        
+        <div class="form-group">
+          <fieldset>
+            <legend>Route Preference:</legend>
+            <div class="route-preferences">
+              <div class="preference-option">
+                <input type="radio" id="best-route" name="route-preference" value="best" checked>
+                <label for="best-route">Best route</label>
+              </div>
+              <div class="preference-option">
+                <input type="radio" id="fewer-transfers" name="route-preference" value="fewer_transfers">
+                <label for="fewer-transfers">Fewer transfers</label>
+              </div>
+              <div class="preference-option">
+                <input type="radio" id="less-walking" name="route-preference" value="less_walking">
+                <label for="less-walking">Less walking</label>
+              </div>
+              <div class="preference-option wheelchair-option">
+                <input type="checkbox" id="wheelchair-accessible" name="wheelchair-accessible" checked>
+                <label for="wheelchair-accessible">Show accessibility info</label>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+        
+        <div class="accessibility-note">
+          <p><i class="fas fa-info-circle" aria-hidden="true"></i> <strong>Important:</strong> The Google Maps API doesn't directly support wheelchair-specific routes. We provide station accessibility information, but the routes shown are standard transit routes. Always check with transport providers for specific accessibility features.</p>
+        </div>
+        
+        <div class="button-group">
+          <button type="submit" id="plan-route" class="primary-button" aria-label="Show route">
+            <i class="fas fa-route" aria-hidden="true"></i> Show Route
+          </button>
+          <button type="reset" id="reset-button" class="secondary-button" aria-label="Reset selections">
+            <i class="fas fa-undo" aria-hidden="true"></i> Reset Route
+          </button>
+        </div>
+      </form>
     </section>
     
-    <div id="map-container" class="map-wrapper" aria-label="Map showing the route">
+    <section id="map-container" class="map-wrapper" aria-labelledby="route-title">
       <div class="map-header">
-        <h2 class="route-title">Your Route</h2>
+        <h2 id="route-title" class="route-title">Your Route</h2>
         <div class="route-info" id="route-details"></div>
       </div>
-      <iframe id="map" frameborder="0" style="border:0" allowfullscreen title="Route map"></iframe>
-    </div>
+      <iframe id="map" frameborder="0" style="border:0" allowfullscreen loading="lazy" 
+              aria-label="Interactive map showing your planned route" title="Journey route map"></iframe>
+    </section>
     
-    <div id="loading-spinner" class="spinner" aria-live="assertive">
+    <div id="loading-spinner" class="spinner" aria-live="assertive" aria-atomic="true" role="status">
       <div class="spinner-content">
         <div class="spinner-icon">
-          <i class="fas fa-route fa-pulse"></i>
+          <i class="fas fa-route fa-pulse" aria-hidden="true"></i>
         </div>
         <div class="spinner-text">
           <h3>Finding Your Route</h3>
           <p class="spinner-message">Searching for accessible paths...</p>
-          <div class="progress-bar">
+          <div class="progress-bar" aria-hidden="true">
             <div class="progress-fill"></div>
           </div>
         </div>
       </div>
     </div>
+    
+    <!-- Feedback Form -->
+    <section class="feedback-section" aria-labelledby="feedback-heading">
+      <h2 id="feedback-heading">Your Feedback Matters</h2>
+      <p>Help us improve our service by sharing your experience.</p>
+      <button id="open-feedback" class="feedback-button">
+        <i class="fas fa-comment-alt" aria-hidden="true"></i> Give Feedback
+      </button>
+      <div id="feedback-form" class="feedback-form hidden">
+        <form>
+          <label for="feedback-message">Your feedback:</label>
+          <textarea id="feedback-message" rows="4" required></textarea>
+          <label for="feedback-email">Email (optional):</label>
+          <input type="email" id="feedback-email">
+          <button type="submit" class="submit-feedback">Send Feedback</button>
+        </form>
+      </div>
+    </section>
     
     <div class="overlay">
       <div class="overlay-content">
@@ -141,7 +255,7 @@
     </div>
   </main>
   
-  <footer>
+  <footer role="contentinfo">
     <div class="footer-content">
       <div class="footer-info">
         <p>© <span id="current-year"></span> Free Flow Routes</p>
@@ -149,19 +263,31 @@
       </div>
       <div class="footer-links">
         <a href="accessibility.html">Accessibility Guide</a>
-        <a href="https://tfl.gov.uk" target="_blank" rel="noopener">TfL Website</a>
+        <a href="https://tfl.gov.uk" target="_blank" rel="noopener noreferrer">TfL Website</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Use</a>
       </div>
     </div>
   </footer>
   
-  <button id="back-to-top" aria-label="Back to top">
-    <i class="fas fa-arrow-up"></i>
+  <button id="back-to-top" aria-label="Back to top" title="Back to top">
+    <i class="fas fa-arrow-up" aria-hidden="true"></i>
   </button>
   
-  <script src="js/main.js"></script>
-  <script src="js/map.js"></script>
+  <noscript>
+    <div class="noscript-message">
+      <p>This journey planner requires JavaScript to function. Please enable JavaScript in your browser settings or use the 
+      <a href="https://tfl.gov.uk/plan-a-journey/" target="_blank" rel="noopener noreferrer">TfL Journey Planner</a> instead.</p>
+    </div>
+  </noscript>
+  
+  <!-- Scripts with performance attributes -->
+  <script src="js/main.js" defer></script>
+  <script src="js/map.js" defer></script>
   <script type="module" src="js/tfl.js"></script>
   <script type="module" src="js/modules/darkMode.js"></script>
   <script type="module" src="js/modules/accessibility.js"></script>
+  <script src="js/modules/feedbackForm.js" defer></script>
+  <script src="js/modules/cookieConsent.js" defer></script>
 </body>
 </html>
