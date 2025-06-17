@@ -1,0 +1,604 @@
+/* Color Variables */
+:root {
+    --primary-color: #007bff;      /* Main blue */
+    --primary-dark: #0056b3;       /* Darker blue for hover */
+    --primary-light: #3395ff;      /* Lighter blue for accents */
+    --text-light: #ffffff;         /* White text */
+    --text-dark: #333333;          /* Dark text */
+    --text-muted: #6c757d;         /* Muted text */
+    --background-light: #f4f4f4;   /* Light background */
+    --background-white: #ffffff;   /* White background */
+    --border-color: #ced4da;       /* Border color */
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    
+    /* Dark mode colors */
+    --dark-background: #121212;
+    --dark-surface: #1e1e1e;
+    --dark-primary: #66b8ff;
+}
+
+/* General Styles */
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: var(--background-light); /* Light gray background for a softer look */
+}
+
+/* Light Mode Header Styles */
+header {
+    background-color: var(--primary-color);
+    padding: 1rem;
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    height: 40px; /* Adjust based on your logo size */
+}
+
+/* Navigation styles */
+.main-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 2rem;
+}
+
+.main-nav a {
+    color: var(--text-light);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.main-nav a:hover {
+    background-color: rgba(var(--primary-color), 0.1);
+}
+
+.main-nav a.active {
+    background-color: rgba(var(--primary-color), 0.2);
+    font-weight: bold;
+}
+
+/* Dark mode adjustments */
+body.dark-mode header {
+    background-color: var(--dark-surface);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .main-nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .switch {
+        margin-top: 1rem;
+    }
+}
+
+/* Dark Mode Header Styles */
+header.dark-mode {
+    background-color: var(--dark-surface); /* Dark mode background color */
+    color: var(--text-light); /* Dark mode text color */
+}
+
+h1 {
+  text-align: center;
+  margin: 0;
+  font-size: 2.5em; /* Larger font size for the title */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Subtle text shadow for depth */
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px; /* Padding for main content */
+  padding-top: 70px;
+}
+
+/* Section Styles */
+section {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* Stretch to full width */
+  margin-bottom: 20px;
+  padding: 30px; /* Increased padding for better spacing */
+  background-color: var(--background-white); /* White background for the form */
+  border-radius: 12px; /* More rounded corners */
+  box-shadow: 0 8px 16px var(--shadow-color); /* Deeper shadow for depth */
+  width: 90%;
+  max-width: 600px;
+}
+
+/* Label Styles */
+label {
+  font-weight: bold; /* Bold labels for better visibility */
+  margin-top: 10px; /* Space above labels */
+  color: var(--text-dark); /* Darker color for labels */
+}
+
+/* Input and Button Styles */
+select, button {
+  margin: 10px 0; /* Space between elements */
+  padding: 12px; /* Increased padding for better touch targets */
+  font-size: 16px;
+  border-radius: 6px; /* More rounded corners */
+  border: 1px solid var(--border-color); /* Light border color */
+  transition: border-color 0.3s, background-color 0.3s; /* Smooth transition for focus */
+  width: 100%; /* Full width for better usability */
+}
+
+select:focus, button:focus {
+  border-color: var(--primary-dark); /* Highlight border on focus */
+  outline: none; /* Remove default outline */
+}
+
+button {
+  background-color: var(--primary-color); /* Primary button color */
+  color: var(--text-light);
+  cursor: pointer;
+  font-weight: bold; /* Bold text for buttons */
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2); /* Subtle shadow for buttons */
+  transition: background-color 0.3s, transform 0.2s; /* Smooth transition for hover effects */
+}
+
+button:hover {
+  background-color: var(--primary-dark); /* Darker shade on hover */
+  box-shadow: 0 6px 12px rgba(0, 86, 179, 0.3); /* Enhanced shadow on hover */
+  transform: translateY(-2px); /* Slight lift effect on hover */
+}
+
+/* Map Container Styles */
+#map-container {
+  display: none; /* Initially hide the map container */
+  width: 100%;
+  height: 600px; /* Height for the map */
+  margin-top: 20px;
+  border-radius: 12px; /* More rounded corners for the map */
+  overflow: hidden; /* Prevent overflow */
+  box-shadow: 0 8px 16px var(--shadow-color); /* Shadow for the map container */
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  border: none; /* Remove any potential borders */
+}
+
+/* Loading Spinner Styles */
+#loading-spinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  color: var(--primary-color);
+}
+
+/* Accessibility Text Styles */
+span {
+  margin-left: 10px;
+  font-size: 14px;
+  color: var(--text-muted); /* Lighter gray for accessibility text */
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 28px; /* Adjusted font size for smaller screens */
+  }
+
+  select, button {
+    width: 100%;
+    font-size: 14px;
+  }
+}
+
+#shadow-host-companion {
+    display: none; /* Hides the element */
+}
+
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+    color: var(--text-light); /* Text color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it appears above other content */
+    cursor: pointer; /* Change cursor to indicate clickable area */
+}
+
+.overlay-content {
+    text-align: center;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8); /* Darker background for the content */
+    border-radius: 10px; /* Rounded corners */
+}
+
+#overlay.hidden {
+    display: none; /* Class to hide the overlay */
+}
+
+#reset-button {
+    display: flex;
+    align-items: center;
+    background: var(--background-light); /* Light background for a subtle look */
+    border: 1px solid var(--border-color); /* Light border */
+    border-radius: 4px; /* Slightly rounded corners */
+    color: var(--text-dark); /* Darker gray color for text */
+    cursor: pointer; /* Pointer cursor */
+    font-size: 14px; /* Font size */
+    padding: 8px 12px; /* Padding for better touch targets */
+    transition: background-color 0.3s, color 0.3s; /* Smooth transition for hover effects */
+    justify-content: flex-end;
+}
+
+#reset-button:hover {
+    background: var(--text-light); /* Slightly darker background on hover */
+    color: var(--text-dark); /* Darker text color on hover */
+}
+
+#reset-button i {
+    font-size: 16px; /* Icon size */
+    margin-right: 5px; /* Space between icon and text */
+}
+
+#plan-route {
+    background-color: var(--primary-dark); /* Darker blue for better contrast */
+    color: var(--text-light); /* White text */
+    border: none; /* No border */
+    padding: 12px 20px; /* Padding for better touch targets */
+    border-radius: 4px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor */
+    font-size: 16px; /* Font size */
+    transition: background-color 0.3s; /* Smooth transition */
+}
+
+#plan-route:hover {
+    background-color: var(--primary-dark); /* Even darker blue on hover */
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: var(--dark-background); /* Dark background */
+    color: var(--text-light); /* Light text color */
+}
+
+section.dark-mode {
+    background-color: var(--dark-surface); /* Dark section background */
+    color: var(--text-light); /* Light text color */
+}
+
+button.dark-mode {
+    background-color: var(--primary-color); /* Button color */
+    color: var(--text-light); /* Button text color */
+}
+
+button.dark-mode:hover {
+    background-color: var(--primary-dark); /* Darker button color on hover */
+}
+
+/* Add more dark mode styles as needed */
+
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 80px; /* Increased width for better visibility */
+    height: 40px; /* Increased height for better touch targets */
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px; /* Rounded corners */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 32px; /* Increased height for the knob */
+    width: 32px; /* Increased width for the knob */
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%; /* Circular knob */
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color); /* Change background color when checked */
+}
+
+input:checked + .slider:before {
+    transform: translateX(40px); /* Move the knob to the right */
+}
+
+/* Optional: Style for icons */
+.slider i {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px; /* Increased icon size for better visibility */
+}
+
+#sun-icon {
+    left: 10px; /* Position for sun icon */
+    color: var(--text-light); /* Dark mode icon color */
+}
+
+#moon-icon {
+    right: 10px; /* Position for moon icon */
+    display: none; /* Initially hide moon icon */
+}
+
+/* Logo Styles */
+.logo {
+    height: 125px; /* Set the height of the logo */
+    width: auto; /* Maintain aspect ratio */
+}
+
+/* Custom focus styles */
+button:focus, 
+select:focus {
+    outline: 2px solid var(--primary-dark); /* Custom focus outline */
+    outline-offset: 2px; /* Space between the outline and the element */
+}
+
+/* Ensure focus is visible on the logo if needed */
+.logo:focus {
+    outline: 2px solid var(--primary-dark); /* Custom focus outline for logo */
+}
+
+.skip-link {
+    position: absolute;
+    top: -40px; /* Move off-screen */
+    left: 10px;
+    background-color: var(--primary-color); /* Background color */
+    color: var(--text-light); /* Text color */
+    padding: 8px 12px; /* Padding */
+    border-radius: 4px; /* Rounded corners */
+    transition: top 0.3s; /* Smooth transition */
+    z-index: 1000; /* Ensure it appears above other content */
+}
+
+.skip-link:focus {
+    top: 10px; /* Move into view when focused */
+}
+
+#back-to-top {
+    position: fixed;
+    bottom: 20px; /* Distance from the bottom */
+    right: 20px; /* Distance from the right */
+    background-color: var(--primary-color); /* Button color */
+    color: var(--text-light); /* Text color */
+    border: none; /* No border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 10px 15px; /* Padding */
+    font-size: 16px; /* Font size */
+    cursor: pointer; /* Pointer cursor */
+    box-shadow: 0 4px 8px var(--shadow-color); /* Shadow for depth */
+    transition: background-color 0.3s; /* Smooth transition */
+    z-index: 1000; /* Ensure it appears above other content */
+}
+
+#back-to-top:hover {
+    background-color: var(--primary-dark); /* Darker shade on hover */
+}
+/* Accessibility Guide Styles */
+/* Add to your existing styles.css */
+
+.accessibility-guide {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.accessibility-levels {
+  margin: 40px 0;
+}
+
+.accessibility-type {
+  background: var(--background-light);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.accessibility-type h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-dark);
+}
+
+.symbol {
+  font-size: 1.5em;
+}
+
+.accessibility-type ul {
+  list-style-type: none;
+  padding-left: 20px;
+}
+
+.accessibility-type li {
+  margin: 10px 0;
+  position: relative;
+}
+
+.accessibility-type li:before {
+  content: "•";
+  color: var(--primary-color);
+  font-weight: bold;
+  position: absolute;
+  left: -15px;
+}
+
+.additional-info,
+.useful-links {
+  margin: 40px 0;
+}
+
+.useful-links a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.useful-links a:hover {
+  text-decoration: underline;
+}
+
+/* Dark mode support */
+body.dark-mode .accessibility-type {
+  background: var(--dark-surface);
+  color: var(--text-light);
+}
+
+body.dark-mode .accessibility-type h3 {
+  color: var(--text-light);
+}
+
+body.dark-mode .useful-links a {
+  color: var(--dark-primary);
+}
+
+/* Navigation styles */
+.main-nav {
+    background-color: var(--primary-color);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.main-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.main-nav li {
+    margin: 0;
+}
+
+.main-nav a {
+    color: var(--text-light);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.main-nav a:hover {
+    background-color: rgba(var(--text-light), 0.1);
+}
+
+.main-nav a.active {
+    background-color: rgba(var(--text-light), 0.2);
+    font-weight: bold;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .main-nav {
+    background-color: var(--dark-surface);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .main-nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .main-nav a {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Accessibility Page Specific Styles */
+.accessibility-guide section {
+    background-color: var(--background-white);
+    border-radius: 12px;
+    box-shadow: 0 8px 16px var(--shadow-color);
+    margin-bottom: 30px;
+    padding: 30px;
+    width: 100%;
+}
+
+.accessibility-guide h1 {
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+}
+
+.accessibility-guide h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+/* Dark mode adjustments for accessibility page */
+body.dark-mode .accessibility-guide section {
+    background-color: var(--dark-surface);
+}
+
+body.dark-mode .accessibility-guide h1,
+body.dark-mode .accessibility-guide h2 {
+    color: var(--dark-primary);
+}
+
+/* Footer Styles */
+footer {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+}
+
+body.dark-mode footer {
+    background-color: var(--dark-surface);
+}
