@@ -64,11 +64,11 @@ header {
 }
 
 .main-nav a:hover {
-    background-color: rgba(var(--primary-color), 0.1);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .main-nav a.active {
-    background-color: rgba(var(--primary-color), 0.2);
+    background-color: rgba(255, 255, 255, 0.2);
     font-weight: bold;
 }
 
@@ -418,6 +418,7 @@ select:focus {
     box-shadow: 0 4px 8px var(--shadow-color); /* Shadow for depth */
     transition: background-color 0.3s; /* Smooth transition */
     z-index: 1000; /* Ensure it appears above other content */
+    display: none;
 }
 
 #back-to-top:hover {
@@ -532,11 +533,11 @@ body.dark-mode .useful-links a {
 }
 
 .main-nav a:hover {
-    background-color: rgba(var(--text-light), 0.1);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .main-nav a.active {
-    background-color: rgba(var(--text-light), 0.2);
+    background-color: rgba(255, 255, 255, 0.2);
     font-weight: bold;
 }
 
@@ -601,4 +602,291 @@ footer {
 
 body.dark-mode footer {
     background-color: var(--dark-surface);
+}
+
+/* Journey planner refresh */
+.planner-card,
+.journey-card {
+    width: 90%;
+    max-width: 920px;
+    border-radius: 16px;
+    background: var(--background-white);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.planner-card h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    text-align: left;
+    color: var(--primary-dark);
+}
+
+.planner-intro {
+    margin: 0 0 18px;
+    color: var(--text-muted);
+}
+
+.planner-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.planner-actions button {
+    flex: 1 1 220px;
+}
+
+.accessibility-pill {
+    display: inline-block;
+    margin: 4px 0 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(0, 123, 255, 0.08);
+    color: var(--primary-dark);
+    font-weight: 600;
+}
+
+.journey-card h2 {
+    margin: 0 0 10px;
+    color: var(--primary-dark);
+}
+
+#route-recommendation {
+    margin: 0 0 10px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.scenario-fired {
+    margin: 0 0 8px;
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    color: var(--text-dark);
+    background: var(--background-white);
+}
+
+#route-meta {
+    margin: 0 0 12px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+#accessibility-guidance {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+#accessibility-guidance li {
+    margin-bottom: 6px;
+}
+
+.route-options {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.route-option-button {
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--border-color);
+    background: var(--background-white);
+    color: var(--text-dark);
+    padding: 12px 14px;
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+.route-option-button span {
+    display: block;
+    margin-top: 4px;
+    margin-left: 0;
+    color: var(--text-muted);
+}
+
+.route-option-button:hover {
+    transform: none;
+    background: #f8fbff;
+}
+
+.route-option-button.active {
+    border-color: var(--primary-color);
+    background: rgba(0, 123, 255, 0.08);
+}
+
+.route-steps {
+    margin-top: 14px;
+    background: rgba(0, 123, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.route-step-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.route-step-list li {
+    margin: 6px 0;
+}
+
+.station-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.station-breakdown-card {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: var(--background-white);
+}
+
+.station-breakdown-card h3 {
+    margin: 0 0 6px;
+    font-size: 1rem;
+}
+
+.station-breakdown-card p {
+    margin: 0 0 6px;
+    font-weight: 600;
+}
+
+.station-breakdown-card ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.live-departures,
+.assistance-panel {
+    margin-top: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: var(--background-white);
+}
+
+.live-departures h3,
+.assistance-panel h3 {
+    margin: 0 0 8px;
+}
+
+.lift-status {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.lift-badge {
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: var(--background-white);
+    font-size: 0.9rem;
+}
+
+.map-preview-controls {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.map-preview-button {
+    border: 1px solid var(--border-color);
+    background: var(--background-white);
+    color: var(--text-dark);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.map-preview-button.active {
+    border-color: var(--primary-color);
+    background: rgba(0, 123, 255, 0.08);
+}
+
+body.dark-mode .planner-card,
+body.dark-mode .journey-card {
+    background: var(--dark-surface);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-mode .planner-card h1,
+body.dark-mode .journey-card h2,
+body.dark-mode #route-recommendation {
+    color: var(--text-light);
+}
+
+body.dark-mode .planner-intro,
+body.dark-mode #accessibility-guidance {
+    color: #c9d1d9;
+}
+
+body.dark-mode .accessibility-pill {
+    background: rgba(102, 184, 255, 0.16);
+    color: #9fd3ff;
+}
+
+body.dark-mode .route-option-button {
+    background: #252525;
+    color: var(--text-light);
+    border-color: #3d3d3d;
+}
+
+body.dark-mode .route-option-button span {
+    color: #c9d1d9;
+}
+
+body.dark-mode .route-option-button.active {
+    background: rgba(102, 184, 255, 0.16);
+    border-color: var(--dark-primary);
+}
+
+body.dark-mode #route-meta {
+    color: #c9d1d9;
+}
+
+body.dark-mode .scenario-fired {
+    color: var(--text-light);
+    background: #252525;
+    border-color: #3d3d3d;
+}
+
+body.dark-mode .route-steps {
+    background: rgba(102, 184, 255, 0.12);
+}
+
+body.dark-mode .station-breakdown-card,
+body.dark-mode .live-departures,
+body.dark-mode .assistance-panel {
+    background: #252525;
+    border-color: #3d3d3d;
+}
+
+body.dark-mode .lift-badge {
+    background: #252525;
+    border-color: #3d3d3d;
+    color: var(--text-light);
+}
+
+body.dark-mode .map-preview-button {
+    background: #252525;
+    color: var(--text-light);
+    border-color: #3d3d3d;
+}
+
+body.dark-mode .map-preview-button.active {
+    background: rgba(102, 184, 255, 0.16);
+    border-color: var(--dark-primary);
 }

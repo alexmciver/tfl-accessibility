@@ -1,0 +1,8 @@
+{"sessionId":"0e9ba9","runId":"run-1","hypothesisId":"H1","location":"index.html:script-loader","message":"Selected planner script","data":{"protocol":"file:","script":"js/tfl.file.js"},"timestamp":1777552470037}
+{"sessionId":"0e9ba9","runId":"run-2","hypothesisId":"H5","location":"js/tfl.file.js:top","message":"File-mode script executing","data":{"readyState":"interactive"},"timestamp":1777552470066}
+{"sessionId":"0e9ba9","runId":"run-2","hypothesisId":"H5","location":"js/tfl.file.js:before-dom-listener","message":"Registering DOMContentLoaded handler","data":{"readyState":"interactive"},"timestamp":1777552470067}
+{"sessionId":"0e9ba9","runId":"post-fix-1","hypothesisId":"H5","location":"js/tfl.file.js:startApp","message":"Starting planner app","data":{"readyState":"interactive","overlayClasses":""},"timestamp":1777552470067}
+{"sessionId":"0e9ba9","runId":"run-1","hypothesisId":"H4","location":"js/tfl.file.js:setupEventListeners","message":"Binding planner listeners","data":{"hasPlanButton":true,"hasResetButton":true,"hasOverlay":true},"timestamp":1777552470074}
+{"sessionId":"0e9ba9","runId":"run-1","hypothesisId":"H2","location":"js/tfl.file.js:fetchTFL","message":"Starting station load","data":{"hasStartSelect":true,"hasEndSelect":true},"timestamp":1777552470075}
+{"sessionId":"0e9ba9","runId":"run-1","hypothesisId":"H2","location":"js/tfl.file.js:fetchTFL","message":"Dropdowns populated","data":{"stationCount":368,"startOptions":369,"endOptions":369},"timestamp":1777552470097}
+{"sessionId":"0e9ba9","runId":"run-1","hypothesisId":"H1","location":"index.html:script-loader","message":"Planner script loaded","data":{"script":"js/tfl.file.js"},"timestamp":1777552470099}

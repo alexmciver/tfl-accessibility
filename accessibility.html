@@ -92,9 +92,9 @@
         <section class="useful-links">
             <h2>Useful Links</h2>
             <ul>
-                <li><a href="https://tfl.gov.uk/transport-accessibility/" target="_blank">TfL Accessibility Portal</a></li>
-                <li><a href="https://tfl.gov.uk/transport-accessibility/wheelchair-access-and-avoiding-stairs" target="_blank">TfL Step-Free Guide</a></li>
-                <li><a href="https://tfl.gov.uk/transport-accessibility/help-from-staff" target="_blank">Staff Assistance Information</a></li>
+                <li><a href="https://tfl.gov.uk/transport-accessibility/" target="_blank" rel="noopener noreferrer">TfL Accessibility Portal</a></li>
+                <li><a href="https://tfl.gov.uk/transport-accessibility/wheelchair-access-and-avoiding-stairs" target="_blank" rel="noopener noreferrer">TfL Step-Free Guide</a></li>
+                <li><a href="https://tfl.gov.uk/transport-accessibility/help-from-staff" target="_blank" rel="noopener noreferrer">Staff Assistance Information</a></li>
             </ul>
         </section>
     </main>
@@ -104,6 +104,17 @@
     </footer>
     
     <button id="back-to-top" aria-label="Back to top">↑ Back to Top</button>
-    <script type="module" src="js/darkMode.js"></script>
+    <script>
+      (function () {
+        var script = document.createElement('script');
+        if (window.location.protocol === 'file:') {
+          script.src = 'js/accessibility.file.js';
+        } else {
+          script.type = 'module';
+          script.src = 'js/accessibility.js';
+        }
+        document.body.appendChild(script);
+      }());
+    </script>
 </body>
 </html> 

@@ -29,32 +29,66 @@
     </div>
   </header>
   <main id="main-content">
-  <section>
-    <label for="start-station">Start Station:</label>
+  <section class="planner-card">
+    <h1>Accessible Journey Planner</h1>
+    <p class="planner-intro">Pick two stations to see accessibility details, practical travel advice, and a route map.</p>
+
+    <label for="start-station">Start station</label>
     <select id="start-station" aria-label="Select start station"></select>
-    <span id="start-accessibility" aria-live="polite"></span>
+    <span id="start-accessibility" class="accessibility-pill" aria-live="polite"></span>
     
-    <label for="end-station">End Station:</label>
+    <label for="end-station">End station</label>
     <select id="end-station" aria-label="Select end station"></select>
-    <span id="end-accessibility" aria-live="polite"></span>
-    
-    <button id="plan-route" aria-label="Show route">Show Route</button>
-    <button id="reset-button" aria-label="Reset selections">
-    <i class="fas fa-undo" style="margin-right: 5px;"></i> Reset route
-    </button>
+    <span id="end-accessibility" class="accessibility-pill" aria-live="polite"></span>
+
+    <div class="planner-actions">
+      <button id="plan-route" aria-label="Show route">Show route</button>
+      <button id="reset-button" aria-label="Reset selections">
+      <i class="fas fa-undo" style="margin-right: 5px;"></i> Reset route
+      </button>
+    </div>
+  </section>
+
+  <section class="journey-card" id="journey-summary" aria-live="polite">
+    <h2>Journey accessibility summary</h2>
+    <p id="scenario-fired" class="scenario-fired"></p>
+    <p id="route-recommendation">Select a route to see step-free guidance, interchange notes, and alternatives.</p>
+    <p id="route-meta"></p>
+    <ul id="accessibility-guidance"></ul>
+    <div id="station-breakdown" class="station-breakdown"></div>
+    <div id="lift-status" class="lift-status"></div>
+    <div id="live-departures" class="live-departures"></div>
+    <div id="assistance-panel" class="assistance-panel"></div>
+    <div id="map-preview-controls" class="map-preview-controls"></div>
+    <div id="route-options" class="route-options"></div>
+    <div id="route-steps" class="route-steps"></div>
   </section>
   <div id="map-container" aria-label="Map showing the route">
-    <iframe id="map" frameborder="0" style="border:0" allowfullscreen></iframe>
+    <iframe id="map" title="Route map" frameborder="0" style="border:0" allowfullscreen></iframe>
   </div>
   <div id="loading-spinner" style="display: none;" aria-live="assertive">Loading...</div>
-  <div id="overlay">
+  <div id="overlay" onclick="this.classList.add('hidden')" onkeydown="if(event.key === 'Enter' || event.key === ' ') { this.classList.add('hidden'); }" tabindex="0" role="button" aria-label="Dismiss route selection message">
     <div class="overlay-content">
     <h2>Please select a route</h2>
     <p>Choose a start and end station to view the route on the map.</p>
     </div>
   </div>
   </main>
-  <script type="module" src="js/tfl.js"></script>
+  <script>
+    (function () {
+      var script = document.createElement('script');
+      var chosen = '';
+      if (window.location.protocol === 'file:') {
+        chosen = 'js/tfl.file.js';
+        script.src = chosen;
+      } else {
+        chosen = 'js/tfl.js';
+        script.type = 'module';
+        script.src = chosen;
+      }
+      document.body.appendChild(script);
+    }());
+  </script>
   <button id="back-to-top" aria-label="Back to top">↑ Back to Top</button>
 </body>
 </html>

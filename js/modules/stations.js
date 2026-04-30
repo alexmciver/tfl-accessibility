@@ -1,5 +1,6 @@
 import { handleError, ErrorTypes } from '../utils/errorHandler.js';
 import { elements } from '../utils/domUtils.js';
+import { stationsDataFallback } from '../data/stationsData.js';
 
 export class StationService {
     constructor() {
@@ -16,12 +17,10 @@ export class StationService {
                 return cachedData;
             }
 
-            const response = await fetch('./stations.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await this.fetchFromKnownPathsOrFallback();
+            if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+                throw new Error('Station data is empty or invalid.');
             }
-            
-            const data = await response.json();
             this.stationData = data;
             
             this.saveToCache(data);
@@ -31,17 +30,55 @@ export class StationService {
         }
     }
 
+    async fetchFromKnownPathsOrFallback() {
+        const paths = [
+            './stations.json',
+            './data/stations.json',
+            'stations.json',
+            'data/stations.json',
+        ];
+
+        let lastError = null;
+
+        for (const path of paths) {
+            try {
+                const response = await fetch(path);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+                    return data;
+                }
+            } catch (error) {
+                lastError = error;
+            }
+        }
+
+        if (stationsDataFallback && typeof stationsDataFallback === 'object' && Object.keys(stationsDataFallback).length > 0) {
+            return stationsDataFallback;
+        }
+
+        throw lastError || new Error('Unable to load station data from known paths or fallback.');
+    }
+
     getCachedData() {
         const cached = localStorage.getItem(this.CACHE_KEY);
         if (!cached) return null;
 
-        const { data, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp > this.CACHE_DURATION) {
+        try {
+            const { data, timestamp } = JSON.parse(cached);
+            if (Date.now() - timestamp > this.CACHE_DURATION) {
+                localStorage.removeItem(this.CACHE_KEY);
+                return null;
+            }
+
+            return data;
+        } catch (error) {
             localStorage.removeItem(this.CACHE_KEY);
             return null;
         }
-
-        return data;
     }
 
     saveToCache(data) {
@@ -61,6 +98,11 @@ export class StationService {
             return;
         }
 
+        elements.startStationSelect.innerHTML = '';
+        elements.endStationSelect.innerHTML = '';
+        this.addPlaceholderOption(elements.startStationSelect, 'Select a start station');
+        this.addPlaceholderOption(elements.endStationSelect, 'Select an end station');
+
         const allStations = Object.entries(this.stationData)
             .map(([station, accessibility]) => {
                 const display = `${station} ${this.getAccessibilityIcon(accessibility)}`;
@@ -76,6 +118,15 @@ export class StationService {
             this.addStationOption(elements.startStationSelect, station);
             this.addStationOption(elements.endStationSelect, station);
         });
+    }
+
+    addPlaceholderOption(selectElement, text) {
+        const option = document.createElement("option");
+        option.value = '';
+        option.text = text;
+        option.disabled = true;
+        option.selected = true;
+        selectElement.add(option);
     }
 
     getAccessibilityIcon(accessibility) {
@@ -121,5 +172,10 @@ export class StationService {
         
         elements.startAccessibility.textContent = `Accessibility: ${startAccessibility}`;
         elements.endAccessibility.textContent = `Accessibility: ${endAccessibility}`;
+    }
+
+    reset() {
+        elements.startStationSelect.selectedIndex = 0;
+        elements.endStationSelect.selectedIndex = 0;
     }
 } 

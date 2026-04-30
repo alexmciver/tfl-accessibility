@@ -49,6 +49,14 @@ npm start
 npm run build
 ```
 
+## Accessibility Data Model
+
+The planner is self-contained and does not rely on runtime third-party accessibility APIs.
+
+- Accessibility routing context is derived from bundled station data.
+- Constraint summaries, lift-status guidance, and route fallbacks are generated deterministically in-app.
+- This keeps behaviour consistent in both `file://` and hosted modes without additional services.
+
 ## File Organization Notes
 
 - All JavaScript is organized in the root `js/` folder, not in `src/js/`

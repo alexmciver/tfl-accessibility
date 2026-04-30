@@ -2,10 +2,14 @@ export const initializeDarkMode = () => {
     const darkModeToggle = document.getElementById("dark-mode-toggle");
     const sunIcon = document.getElementById("sun-icon");
     const moonIcon = document.getElementById("moon-icon");
+    const header = document.querySelector('header');
+
+    if (!darkModeToggle || !sunIcon || !moonIcon || !header) {
+        return;
+    }
 
     // Function to apply dark mode based on preference
     const applyDarkMode = (isDarkMode) => {
-        const header = document.querySelector('header');
         if (isDarkMode) {
             document.body.classList.add('dark-mode');
             header.classList.add('dark-mode');

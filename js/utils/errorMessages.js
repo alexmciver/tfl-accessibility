@@ -22,8 +22,6 @@ export const RouteErrors = {
 };
 
 export const showErrorMessage = (error, container) => {
-    console.log('Showing error message:', error); // Debug log
-    
     // Remove any existing error messages
     const existingError = document.querySelector('.error-message');
     if (existingError) {
