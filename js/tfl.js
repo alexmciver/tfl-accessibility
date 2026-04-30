@@ -17,6 +17,7 @@ const backToTopButton = document.getElementById("back-to-top");
 const routeRecommendation = document.getElementById("route-recommendation");
 const routeMeta = document.getElementById("route-meta");
 const scenarioFired = document.getElementById("scenario-fired");
+const journeyQuickSummary = document.getElementById("journey-quick-summary");
 const accessibilityGuidance = document.getElementById("accessibility-guidance");
 const stationBreakdownContainer = document.getElementById("station-breakdown");
 const liftStatusContainer = document.getElementById("lift-status");
@@ -55,6 +56,15 @@ const renderRouteSteps = (steps = []) => {
         orderedList.appendChild(listItem);
     });
     routeStepsContainer.appendChild(orderedList);
+};
+
+const renderJourneyQuickSummary = (start, end, recommendations) => {
+    if (!journeyQuickSummary) return;
+    const needsTransfer = recommendations.policy?.originRerouteRequired || recommendations.policy?.destinationTransferRequired;
+    const message = needsTransfer
+        ? `Route from ${start} to ${end}: travel by accessible rail to a suitable hub, then complete any constrained section by bus or walking transfer.`
+        : `Route from ${start} to ${end}: a direct step-free rail journey is available, with alternatives shown below.`;
+    journeyQuickSummary.innerHTML = `<p>${escapeHtml(message)}</p>`;
 };
 
 const applyMapPreview = (previewMode) => {
@@ -134,21 +144,22 @@ const renderRouteOptions = (options) => {
 const getBaseGuidance = (start, end, startAccessibility, endAccessibility) => {
     const guidance = [];
     if (startAccessibility === 'Full' && endAccessibility === 'Partial') {
-        routeRecommendation.textContent = 'Start is fully step-free, but destination is only partially step-free. Continue by Tube, then transfer to a safer final leg when needed.';
-        guidance.push(`Use Tube from ${start} as normal, but plan to leave at a nearby accessible interchange before ${end} if destination platforms/exits are constrained.`);
-        guidance.push(`Prefer bus or short walking transfer for the final approach to ${end} when platform assignment is uncertain.`);
+        routeRecommendation.textContent = 'Destination access is limited. Stay on rail for the main trip, then transfer for the last section.';
+        guidance.push(`Do this now: travel by Tube from ${start}, then leave at an accessible interchange before ${end}.`);
+        guidance.push(`Finish safely: use an accessible bus or short walk for the final approach to ${end}.`);
     } else if (startAccessibility === 'None' || endAccessibility === 'None') {
-        routeRecommendation.textContent = 'One or more stations are not step-free. We prioritise Tube where possible and add bus or walking links for inaccessible segments.';
-        guidance.push(`If ${end} is inaccessible, travel to a nearby accessible interchange and complete the final leg by bus or short walk.`);
+        routeRecommendation.textContent = 'One station is not step-free. This plan avoids inaccessible sections where possible.';
+        guidance.push(`Do this now: use rail to an accessible hub near ${end}, then transfer by bus or short walk.`);
     } else if (startAccessibility === 'Partial' || endAccessibility === 'Partial') {
-        routeRecommendation.textContent = 'This journey includes partial step-free access. Platform-specific checks are required.';
-        guidance.push('Confirm platform access before departure and prepare a bus-link fallback.');
+        routeRecommendation.textContent = 'This journey has partial step-free access. Platform checks are required.';
+        guidance.push('Do this now: confirm platform and exit access before departure.');
+        guidance.push('Keep a backup: be ready to switch to an accessible bus for any constrained segment.');
     } else {
-        routeRecommendation.textContent = 'This route supports step-free travel and remains Tube-first.';
-        guidance.push('A fully accessible route is available with backup alternatives.');
+        routeRecommendation.textContent = 'A direct step-free route is available.';
+        guidance.push('Do this now: follow the recommended rail route. Alternatives are shown below.');
     }
-    guidance.push('Check live lift and service status before travelling.');
-    guidance.push('Ask station staff for boarding ramps where required.');
+    guidance.push('Before you leave: check lift and service status again.');
+    guidance.push('At the station: ask staff for a boarding ramp if required.');
     return guidance;
 };
 
@@ -231,6 +242,9 @@ const resetSelections = () => {
     document.getElementById("start-accessibility").textContent = '';
     document.getElementById("end-accessibility").textContent = '';
     scenarioFired.textContent = '';
+    if (journeyQuickSummary) {
+        journeyQuickSummary.innerHTML = '<p>Choose stations to generate a simple step-by-step plan.</p>';
+    }
     routeRecommendation.textContent = 'Select a route to see step-free guidance, interchange notes, and alternatives.';
     routeMeta.textContent = '';
     accessibilityGuidance.innerHTML = '';
@@ -265,6 +279,7 @@ const planRoute = async () => {
             endAccessibility
         });
         const options = [recommendations.recommended, ...recommendations.alternatives];
+        renderJourneyQuickSummary(start, end, recommendations);
         scenarioFired.textContent = `Scenario fired: ${recommendations.scenario}`;
         routeMeta.textContent = `${recommendations.degraded ? 'Fallback confidence' : 'Live-data confidence'} | Scenario: ${recommendations.scenario} | Selected option: ${options[0].title}`;
         const strictPolicyGuidance = [];
@@ -336,6 +351,9 @@ const initializeBackToTop = () => {
 const initialize = async () => {
     initializeDarkMode();
     initializeBackToTop();
+    if (journeyQuickSummary) {
+        journeyQuickSummary.innerHTML = '<p>Choose stations to generate a simple step-by-step plan.</p>';
+    }
     await fetchTFL();
 };
 

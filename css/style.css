@@ -628,6 +628,17 @@ body.dark-mode footer {
     color: var(--text-muted);
 }
 
+.quick-steps {
+    margin: 0 0 18px;
+    padding-left: 20px;
+    color: var(--text-dark);
+    line-height: 1.5;
+}
+
+.quick-steps li {
+    margin-bottom: 6px;
+}
+
 .planner-actions {
     display: flex;
     gap: 12px;
@@ -653,9 +664,25 @@ body.dark-mode footer {
     color: var(--primary-dark);
 }
 
+.journey-quick-summary {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: rgba(0, 123, 255, 0.05);
+    color: var(--text-dark);
+}
+
+.journey-quick-summary p {
+    margin: 0;
+    line-height: 1.45;
+}
+
 #route-recommendation {
     margin: 0 0 10px;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.4;
     color: var(--text-dark);
 }
 
@@ -726,6 +753,14 @@ body.dark-mode footer {
     background: rgba(0, 123, 255, 0.05);
     border-radius: 10px;
     padding: 10px 12px;
+}
+
+.route-steps::before {
+    content: "Do this now";
+    display: block;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--primary-dark);
 }
 
 .route-step-list {
@@ -829,7 +864,8 @@ body.dark-mode #route-recommendation {
 }
 
 body.dark-mode .planner-intro,
-body.dark-mode #accessibility-guidance {
+body.dark-mode #accessibility-guidance,
+body.dark-mode .quick-steps {
     color: #c9d1d9;
 }
 
@@ -867,6 +903,16 @@ body.dark-mode .route-steps {
     background: rgba(102, 184, 255, 0.12);
 }
 
+body.dark-mode .route-steps::before {
+    color: #b8dcff;
+}
+
+body.dark-mode .journey-quick-summary {
+    background: rgba(102, 184, 255, 0.12);
+    border-color: #3d3d3d;
+    color: var(--text-light);
+}
+
 body.dark-mode .station-breakdown-card,
 body.dark-mode .live-departures,
 body.dark-mode .assistance-panel {
@@ -889,4 +935,34 @@ body.dark-mode .map-preview-button {
 body.dark-mode .map-preview-button.active {
     background: rgba(102, 184, 255, 0.16);
     border-color: var(--dark-primary);
+}
+
+@media (max-width: 768px) {
+    .planner-card,
+    .journey-card {
+        width: 96%;
+        padding: 16px;
+    }
+
+    .planner-card h1 {
+        font-size: 1.5rem;
+    }
+
+    .quick-steps {
+        font-size: 0.95rem;
+        line-height: 1.55;
+    }
+
+    #route-recommendation {
+        font-size: 1rem;
+    }
+
+    .route-option-button {
+        padding: 10px 12px;
+    }
+
+    .route-step-list li {
+        margin: 8px 0;
+        line-height: 1.5;
+    }
 }

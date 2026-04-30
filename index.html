@@ -33,7 +33,12 @@
   <main id="main-content">
   <section class="planner-card">
     <h1>Accessible Journey Planner</h1>
-    <p class="planner-intro">Pick two stations to see accessibility details, practical travel advice, and a route map.</p>
+    <p class="planner-intro">Plan your journey in three simple steps: choose stations, review accessibility, then follow the safest route.</p>
+    <ol class="quick-steps" aria-label="Journey planning steps">
+      <li><strong>Choose</strong> your start and end stations.</li>
+      <li><strong>Review</strong> the access level and transfer requirements.</li>
+      <li><strong>Follow</strong> the recommended route and map preview.</li>
+    </ol>
 
     <label for="start-station">Start station</label>
     <select id="start-station" aria-label="Select start station"></select>
@@ -52,7 +57,8 @@
   </section>
 
   <section class="journey-card" id="journey-summary" aria-live="polite">
-    <h2>Journey accessibility summary</h2>
+    <h2>Your journey plan</h2>
+    <div id="journey-quick-summary" class="journey-quick-summary"></div>
     <p id="scenario-fired" class="scenario-fired"></p>
     <p id="route-recommendation">Select a route to see step-free guidance, interchange notes, and alternatives.</p>
     <p id="route-meta"></p>

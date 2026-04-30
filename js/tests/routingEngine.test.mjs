@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { classifyAccessibilityScenario, buildDynamicRecommendations } from '../modules/routingEngine.js';
+import { stationsDataFallback } from '../data/stationsData.js';
 
 const run = async () => {
     assert.equal(classifyAccessibilityScenario('Full', 'Full'), 'Full->Full');
@@ -37,6 +38,53 @@ const run = async () => {
     assert.equal(inaccessibleDestinationResult.policy.destinationTransferRequired, true);
     assert.match(inaccessibleDestinationResult.liveContext.destinationHub, /Liverpool Street Station, London/);
     assert.match(inaccessibleDestinationResult.recommended.steps[1].text, /Liverpool Street Station, London/);
+
+    const categories = ['Full', 'Interchange', 'Partial', 'None'];
+    const stationsByCategory = categories.reduce((acc, category) => {
+        acc[category] = Object.entries(stationsDataFallback)
+            .filter(([, accessibility]) => accessibility === category)
+            .map(([station]) => station)
+            .slice(0, 8);
+        return acc;
+    }, {});
+
+    for (const startCategory of categories) {
+        for (const endCategory of categories) {
+            const startStations = stationsByCategory[startCategory];
+            const endStations = stationsByCategory[endCategory];
+            assert.ok(startStations.length > 0, `Missing start stations for ${startCategory}`);
+            assert.ok(endStations.length > 0, `Missing end stations for ${endCategory}`);
+
+            for (const startStation of startStations) {
+                for (const endStation of endStations) {
+                    if (startStation === endStation) continue;
+                    const result = await buildDynamicRecommendations({
+                        apiKey: '',
+                        start: startStation,
+                        end: endStation,
+                        startAccessibility: startCategory,
+                        endAccessibility: endCategory
+                    });
+
+                    assert.equal(result.scenario, `${startCategory}->${endCategory}`);
+                    assert.equal(
+                        result.policy.originRerouteRequired,
+                        ['None', 'Partial'].includes(startCategory),
+                        `Origin reroute policy mismatch for ${startStation} -> ${endStation}`
+                    );
+                    assert.equal(
+                        result.policy.destinationTransferRequired,
+                        ['None', 'Partial', 'Interchange'].includes(endCategory),
+                        `Destination transfer policy mismatch for ${startStation} -> ${endStation}`
+                    );
+                    assert.ok(result.recommended, `Missing recommended option for ${startStation} -> ${endStation}`);
+                    assert.ok(result.recommended.mapUrl.includes('output=embed'), `Missing embedded map for ${startStation} -> ${endStation}`);
+                    assert.ok(result.recommended.steps.length > 0, `Missing route steps for ${startStation} -> ${endStation}`);
+                }
+            }
+        }
+    }
+
     console.log('routingEngine scenario tests passed');
 };
 
