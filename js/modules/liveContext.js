@@ -1,3 +1,5 @@
+import { stationsDataFallback } from '../data/stationsData.js';
+
 const fallbackBreakdown = (station, accessibility) => ({
     station,
     summary: `Step-free indicator: ${accessibility}`,
@@ -10,10 +12,42 @@ const fallbackBreakdown = (station, accessibility) => ({
     ]
 });
 
+const ACCESSIBLE_HUB_OVERRIDES = {
+    Aldgate: 'Liverpool Street',
+    'Aldgate East': 'Whitechapel',
+    Bank: 'London Bridge',
+    Barbican: 'Farringdon',
+    Angel: 'King’s Cross St. Pancras',
+    Waterloo: 'London Bridge',
+    Victoria: 'Green Park'
+};
+
+const stationNames = Object.keys(stationsDataFallback);
+const getNearestFullStation = (station) => {
+    const originIndex = stationNames.indexOf(station);
+    if (originIndex === -1) return 'London Bridge';
+
+    for (let offset = 1; offset < stationNames.length; offset += 1) {
+        const lowerIndex = originIndex - offset;
+        if (lowerIndex >= 0) {
+            const lowerName = stationNames[lowerIndex];
+            if (stationsDataFallback[lowerName] === 'Full') return lowerName;
+        }
+        const upperIndex = originIndex + offset;
+        if (upperIndex < stationNames.length) {
+            const upperName = stationNames[upperIndex];
+            if (stationsDataFallback[upperName] === 'Full') return upperName;
+        }
+    }
+
+    return 'London Bridge';
+};
+
 const deterministicHubName = (station, accessibility, type) => {
     if (accessibility === 'Full') return `${station} Station, London`;
-    if (type === 'origin') return `accessible hub near ${station} Station, London`;
-    return `accessible interchange near ${station} Station, London`;
+    const overrideHub = ACCESSIBLE_HUB_OVERRIDES[station];
+    const resolvedHub = overrideHub || getNearestFullStation(station);
+    return `${resolvedHub} Station, London`;
 };
 
 const deterministicLiftStatus = (accessibility) => {

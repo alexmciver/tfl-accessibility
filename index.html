@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self'; font-src 'self' https://cdnjs.cloudflare.com data:; frame-src https://www.google.com https://maps.google.com https://*.google.com https://*.google.co.uk; connect-src 'self';">
   <title>Free Flow Routes</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -64,31 +66,17 @@
     <div id="route-steps" class="route-steps"></div>
   </section>
   <div id="map-container" aria-label="Map showing the route">
-    <iframe id="map" title="Route map" frameborder="0" style="border:0" allowfullscreen></iframe>
+    <iframe id="map" title="Route map" frameborder="0" style="border:0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
   </div>
   <div id="loading-spinner" style="display: none;" aria-live="assertive">Loading...</div>
-  <div id="overlay" onclick="this.classList.add('hidden')" onkeydown="if(event.key === 'Enter' || event.key === ' ') { this.classList.add('hidden'); }" tabindex="0" role="button" aria-label="Dismiss route selection message">
+  <div id="overlay" tabindex="0" role="button" aria-label="Dismiss route selection message">
     <div class="overlay-content">
     <h2>Please select a route</h2>
     <p>Choose a start and end station to view the route on the map.</p>
     </div>
   </div>
   </main>
-  <script>
-    (function () {
-      var script = document.createElement('script');
-      var chosen = '';
-      if (window.location.protocol === 'file:') {
-        chosen = 'js/tfl.file.js';
-        script.src = chosen;
-      } else {
-        chosen = 'js/tfl.js';
-        script.type = 'module';
-        script.src = chosen;
-      }
-      document.body.appendChild(script);
-    }());
-  </script>
+  <script src="js/boot.js"></script>
   <button id="back-to-top" aria-label="Back to top">↑ Back to Top</button>
 </body>
 </html>

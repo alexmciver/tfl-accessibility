@@ -32,9 +32,7 @@ export class StationService {
 
     async fetchFromKnownPathsOrFallback() {
         const paths = [
-            './stations.json',
             './data/stations.json',
-            'stations.json',
             'data/stations.json',
         ];
 

@@ -3,9 +3,26 @@ import { getLiveContext } from './liveContext.js';
 const ACCESSIBILITY_WEIGHT = { Full: 3, Interchange: 2, Partial: 1, None: 0 };
 export const classifyAccessibilityScenario = (startAccessibility, endAccessibility) => `${startAccessibility}->${endAccessibility}`;
 
+const getDirectionFlag = (mode) => {
+    if (mode === 'walking') return 'w';
+    if (mode === 'transit') return 'r';
+    if (mode === 'driving') return 'd';
+    return '';
+};
+
 const createMapUrl = (apiKey, origin, destination, mode, waypoints = []) => {
-    let url = `https://www.google.com/maps/embed/v1/directions?key=${apiKey}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&mode=${encodeURIComponent(mode)}&zoom=12`;
-    if (waypoints.length > 0) url += `&waypoints=${encodeURIComponent(waypoints.join('|'))}`;
+    if (apiKey) {
+        let url = `https://www.google.com/maps/embed/v1/directions?key=${apiKey}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&mode=${encodeURIComponent(mode)}&zoom=12`;
+        if (waypoints.length > 0) url += `&waypoints=${encodeURIComponent(waypoints.join('|'))}`;
+        return url;
+    }
+
+    const dirFlag = getDirectionFlag(mode);
+    const fullDestination = [...waypoints, destination].join(' to:');
+    let url = `https://maps.google.com/maps?output=embed&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(fullDestination)}`;
+    if (dirFlag) {
+        url += `&dirflg=${encodeURIComponent(dirFlag)}`;
+    }
     return url;
 };
 
@@ -56,9 +73,9 @@ const buildScenarioStrategies = (apiKey, start, end, startAccessibility, endAcce
             title: 'Accessible interchange then final transfer',
             badge: 'Partial destination',
             rationale: 'Stay on Tube, then transfer at an accessible interchange for final approach.',
-            mapUrl: createMapUrl(apiKey, startStation, endStation, 'transit', [destinationHub]),
-            waypointMapUrl: createMapUrl(apiKey, startStation, endStation, 'transit', [destinationHub]),
-            finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'transit'),
+            mapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
+            waypointMapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
+            finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'walking'),
             steps: [
                 baseStep('tube', `Take Tube from ${start} to ${destinationHub}.`),
                 baseStep('bus', `Complete final access to ${end} by accessible bus/walk if platform access is constrained.`)
@@ -68,9 +85,9 @@ const buildScenarioStrategies = (apiKey, start, end, startAccessibility, endAcce
             title: 'Early bus switch for predictable final access',
             badge: 'Alternative',
             rationale: 'Switch to bus before destination to avoid uncertain platform constraints.',
-            mapUrl: createMapUrl(apiKey, startStation, endStation, 'transit', [destinationHub]),
-            waypointMapUrl: createMapUrl(apiKey, startStation, endStation, 'transit', [destinationHub]),
-            finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'transit'),
+            mapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
+            waypointMapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
+            finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'walking'),
             steps: [
                 baseStep('tube', `Travel by Tube from ${start} to ${destinationHub}.`),
                 baseStep('bus', `Use bus/walk for final approach into ${end}.`)
@@ -91,8 +108,8 @@ const buildScenarioStrategies = (apiKey, start, end, startAccessibility, endAcce
             title: 'Accessible hub transfer',
             badge: 'Bus-link required',
             rationale: 'Reroutes via accessible hubs when origin or destination is constrained.',
-            mapUrl: createMapUrl(apiKey, effectiveOrigin, endStation, 'transit', [originHub, destinationHub]),
-            waypointMapUrl: createMapUrl(apiKey, effectiveOrigin, endStation, 'transit', [destinationHub]),
+            mapUrl: createMapUrl(apiKey, originHub, destinationHub, 'transit'),
+            waypointMapUrl: createMapUrl(apiKey, effectiveOrigin, destinationHub, 'transit', [originHub]),
             finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, destinationTransferRequired ? 'walking' : 'transit'),
             steps: [
                 baseStep('bus', originRerouteRequired ? `Start with bus/walk transfer from ${start} to accessible hub ${originHub}.` : `Begin from ${effectiveOrigin}.`),

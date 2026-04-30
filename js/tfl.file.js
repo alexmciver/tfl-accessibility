@@ -1,5 +1,5 @@
 (function () {
-    const API_KEY = 'AIzaSyAXtbzVDS-7QGGeH3-tvZnc9XOST13TgBQ';
+    const API_KEY = window.FREEFLOW_GOOGLE_MAPS_API_KEY || '';
     const stationsDataFallback = {
         "Abbey Road": "Full",
         "Acton Central": "Full",
@@ -449,10 +449,14 @@
         }
         planRoute(startStation, endStation) {
             if (!this.mapElement) return;
-            const mapUrl = `https://www.google.com/maps/embed/v1/directions?key=${API_KEY}`
-                + `&origin=${encodeURIComponent(startStation + ' Station, London')}`
-                + `&destination=${encodeURIComponent(endStation + ' Station, London')}`
-                + `&mode=transit&zoom=12`;
+            const origin = `${startStation} Station, London`;
+            const destination = `${endStation} Station, London`;
+            const mapUrl = API_KEY
+                ? `https://www.google.com/maps/embed/v1/directions?key=${API_KEY}`
+                    + `&origin=${encodeURIComponent(origin)}`
+                    + `&destination=${encodeURIComponent(destination)}`
+                    + `&mode=transit&zoom=12`
+                : `https://maps.google.com/maps?output=embed&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(destination)}&dirflg=r`;
             this.mapElement.src = mapUrl;
         }
         reset() {
@@ -581,6 +585,12 @@
     const mapElement = document.getElementById("map");
     let listenersInitialized = false;
     let currentMapUrls = { full: '', via: '', final: '' };
+    const escapeHtml = (value = '') => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 
     const displayAccessibilityInfo = (start, end) => {
         const startAccessibility = stationService.stationData[start] || 'N/A';
@@ -655,7 +665,17 @@
         }
     };
 
-    const renderMapPreviewControls = (option) => {
+    const getPreferredPreviewMode = (option) => {
+        if (option.badge === 'Bus-link required' || option.badge === 'Step 2' || option.badge === 'Step 3') {
+            return 'via';
+        }
+        if (option.finalLegMapUrl && option.finalLegMapUrl !== option.mapUrl && option.badge !== 'Tube-first') {
+            return 'via';
+        }
+        return 'full';
+    };
+
+    const renderMapPreviewControls = (option, preferredPreview = 'full') => {
         mapPreviewControls.innerHTML = '';
         currentMapUrls = {
             full: option.mapUrl,
@@ -678,10 +698,13 @@
         const fullButton = createButton('full', 'Full journey map');
         const viaButton = createButton('via', 'Via interchange map');
         const finalButton = createButton('final', 'Final leg map');
-        fullButton.classList.add('active');
+        const buttonMap = { full: fullButton, via: viaButton, final: finalButton };
+        const initialMode = buttonMap[preferredPreview] ? preferredPreview : 'full';
+        buttonMap[initialMode].classList.add('active');
         mapPreviewControls.appendChild(fullButton);
         mapPreviewControls.appendChild(viaButton);
         mapPreviewControls.appendChild(finalButton);
+        applyMapPreview(initialMode);
     };
 
     const renderStationBreakdown = (start, end, startAccessibility, endAccessibility) => {
@@ -724,17 +747,17 @@
         const endDetails = getGuaranteedConstraintDetails(endAccessibility, end);
         stationBreakdownContainer.innerHTML = `
             <div class="station-breakdown-card">
-                <h3>${start}</h3>
-                <p>Step-free indicator: ${startAccessibility}</p>
+                <h3>${escapeHtml(start)}</h3>
+                <p>Step-free indicator: ${escapeHtml(startAccessibility)}</p>
                 <ul>
-                    ${startDetails.map((detail) => `<li>${detail}</li>`).join('')}
+                    ${startDetails.map((detail) => `<li>${escapeHtml(detail)}</li>`).join('')}
                 </ul>
             </div>
             <div class="station-breakdown-card">
-                <h3>${end}</h3>
-                <p>Step-free indicator: ${endAccessibility}</p>
+                <h3>${escapeHtml(end)}</h3>
+                <p>Step-free indicator: ${escapeHtml(endAccessibility)}</p>
                 <ul>
-                    ${endDetails.map((detail) => `<li>${detail}</li>`).join('')}
+                    ${endDetails.map((detail) => `<li>${escapeHtml(detail)}</li>`).join('')}
                 </ul>
             </div>
         `;
@@ -770,23 +793,68 @@
             </ul>
             <p><a href="https://tfl.gov.uk/transport-accessibility/help-from-staff" target="_blank" rel="noopener noreferrer">TfL staff assistance information</a></p>
             <p><a href="https://www.nationalrail.co.uk/help-and-assistance/passenger-assist/" target="_blank" rel="noopener noreferrer">National Rail Passenger Assist</a></p>
-            <p><strong>Planned journey:</strong> ${start} to ${end}</p>
+            <p><strong>Planned journey:</strong> ${escapeHtml(start)} to ${escapeHtml(end)}</p>
         `;
     };
 
     const createMapUrl = (origin, destination, mode, transitMode) => {
-        let url = `https://www.google.com/maps/embed/v1/directions?key=${API_KEY}`
-            + `&origin=${encodeURIComponent(origin)}`
-            + `&destination=${encodeURIComponent(destination)}`
-            + `&mode=${encodeURIComponent(mode)}&zoom=12`;
+        if (API_KEY) {
+            return `https://www.google.com/maps/embed/v1/directions?key=${API_KEY}`
+                + `&origin=${encodeURIComponent(origin)}`
+                + `&destination=${encodeURIComponent(destination)}`
+                + `&mode=${encodeURIComponent(mode)}&zoom=12`;
+        }
+        const dirFlag = mode === 'walking' ? 'w' : mode === 'transit' ? 'r' : mode === 'driving' ? 'd' : '';
+        let url = `https://maps.google.com/maps?output=embed&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(destination)}`;
+        if (dirFlag) {
+            url += `&dirflg=${encodeURIComponent(dirFlag)}`;
+        }
         return url;
+    };
+
+    const ACCESSIBLE_HUB_OVERRIDES = {
+        Aldgate: 'Liverpool Street',
+        'Aldgate East': 'Whitechapel',
+        Bank: 'London Bridge',
+        Barbican: 'Farringdon',
+        Angel: 'King’s Cross St. Pancras',
+        Waterloo: 'London Bridge',
+        Victoria: 'Green Park'
+    };
+
+    const getNearestFullStation = (station) => {
+        const stationNames = Object.keys(stationsDataFallback);
+        const originIndex = stationNames.indexOf(station);
+        if (originIndex === -1) return 'London Bridge';
+
+        for (let offset = 1; offset < stationNames.length; offset += 1) {
+            const lowerIndex = originIndex - offset;
+            if (lowerIndex >= 0) {
+                const lowerName = stationNames[lowerIndex];
+                if (stationsDataFallback[lowerName] === 'Full') return lowerName;
+            }
+            const upperIndex = originIndex + offset;
+            if (upperIndex < stationNames.length) {
+                const upperName = stationNames[upperIndex];
+                if (stationsDataFallback[upperName] === 'Full') return upperName;
+            }
+        }
+
+        return 'London Bridge';
+    };
+
+    const resolveAccessibleHub = (station, accessibility) => {
+        if (accessibility === 'Full') return `${station} Station, London`;
+        const overrideHub = ACCESSIBLE_HUB_OVERRIDES[station];
+        const resolvedHub = overrideHub || getNearestFullStation(station);
+        return `${resolvedHub} Station, London`;
     };
 
     const buildRouteOptions = (start, end, startAccessibility, endAccessibility) => {
         const startStation = `${start} Station, London`;
         const endStation = `${end} Station, London`;
-        const startAccessibleHub = `step free station near ${start} Station, London`;
-        const endAccessibleHub = `step free station near ${end} Station, London`;
+        const startAccessibleHub = resolveAccessibleHub(start, startAccessibility);
+        const endAccessibleHub = resolveAccessibleHub(end, endAccessibility);
         const hasInaccessibleLeg = [startAccessibility, endAccessibility].some((value) => value === 'None' || value === 'Partial');
 
         if (!hasInaccessibleLeg) {
@@ -824,19 +892,19 @@
                     title: 'Recommended: Tube core then final transfer',
                     badge: 'Partial destination',
                     rationale: 'Stay on Tube for the main route, then use bus/walking for the final constrained section.',
-                    mapUrl: createMapUrl(startStation, endStation, 'transit'),
-                    finalLegMapUrl: createMapUrl(`accessible interchange near ${end} Station, London`, endStation, 'transit'),
+                    mapUrl: createMapUrl(startStation, endAccessibleHub, 'transit'),
+                    finalLegMapUrl: createMapUrl(endAccessibleHub, endStation, 'walking'),
                     steps: [
-                        { text: `Travel by Tube from ${start} toward ${end}.` },
-                        { text: `If destination platform/exit at ${end} is not step-free for your direction, get off at the nearest accessible interchange and complete by bus.` }
+                        { text: `Travel by Tube from ${start} to accessible interchange ${endAccessibleHub}.` },
+                        { text: `Complete the final access into ${end} by accessible bus or walking transfer.` }
                     ]
                 },
                 {
                     title: 'Alternative: Early bus switch',
                     badge: 'Alternative',
                     rationale: 'Switch to bus before destination to avoid uncertain platform constraints.',
-                    mapUrl: createMapUrl(startStation, endStation, 'transit'),
-                    finalLegMapUrl: createMapUrl(`major interchange near ${end} Station, London`, endStation, 'transit'),
+                    mapUrl: createMapUrl(startStation, endAccessibleHub, 'transit'),
+                    finalLegMapUrl: createMapUrl(endAccessibleHub, endStation, 'walking'),
                     steps: [{ text: `Use Tube for the core section, then bus for the destination approach into ${end}.` }]
                 }
             ];
@@ -847,11 +915,11 @@
                 title: 'Recommended: Accessible hub transfer',
                 badge: 'Bus-link required',
                 rationale: 'Finds a nearby step-free station first, then continues by Tube/rail.',
-                mapUrl: createMapUrl(startStation, endStation, 'transit'),
-                finalLegMapUrl: createMapUrl(startAccessibleHub, endStation, 'transit'),
+                mapUrl: createMapUrl(startAccessibleHub, endAccessibleHub, 'transit'),
+                finalLegMapUrl: createMapUrl(endAccessibleHub, endStation, 'walking'),
                 steps: [
-                    { text: `Start at ${start} and head towards an accessible interchange.` },
-                    { text: `Use a bus link to complete access into ${end}.` }
+                    { text: `Start from accessible hub ${startAccessibleHub} and travel by Tube to ${endAccessibleHub}.` },
+                    { text: `Use a bus or walking transfer from ${endAccessibleHub} to ${end}.` }
                 ]
             },
             {
@@ -890,14 +958,14 @@
             if (index === 0) {
                 button.classList.add('active');
             }
-            button.innerHTML = `<strong>${option.title}</strong><span>${option.badge} - ${option.rationale}</span>`;
+            button.innerHTML = `<strong>${escapeHtml(option.title)}</strong><span>${escapeHtml(option.badge)} - ${escapeHtml(option.rationale)}</span>`;
             button.addEventListener('click', () => {
                 Array.from(routeOptionsContainer.querySelectorAll('.route-option-button')).forEach((item) => {
                     item.classList.remove('active');
                 });
                 button.classList.add('active');
-                renderMapPreviewControls(option);
-                applyMapPreview('full');
+                const preferredPreview = getPreferredPreviewMode(option);
+                renderMapPreviewControls(option, preferredPreview);
                 mapContainer.style.display = "block";
                 renderRouteSteps(option.steps || [{ text: option.rationale }]);
                 routeMeta.textContent = `${routeMeta.textContent.split(' | ')[0]} | Selected option: ${option.title}`;
@@ -956,8 +1024,10 @@
             renderLiftStatus(startAccessibility, endAccessibility);
             renderLiveDepartures();
             renderAssistancePanel(start, end, startAccessibility, endAccessibility);
-            renderMapPreviewControls(routeOptions[0]);
-            applyMapPreview('full');
+            const preferredPreview = (['None', 'Partial'].includes(startAccessibility) || ['None', 'Partial', 'Interchange'].includes(endAccessibility))
+                ? 'via'
+                : getPreferredPreviewMode(routeOptions[0]);
+            renderMapPreviewControls(routeOptions[0], preferredPreview);
             renderRouteSteps(routeOptions[0].steps || [{ text: routeOptions[0].rationale }]);
             mapContainer.style.display = "block";
             overlay.classList.add("hidden");
@@ -970,6 +1040,12 @@
         if (listenersInitialized) return;
         document.getElementById("plan-route").addEventListener("click", planRoute);
         overlay.addEventListener("click", hideOverlay);
+        overlay.addEventListener("keydown", (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                hideOverlay();
+            }
+        });
         document.getElementById("reset-button").addEventListener("click", resetSelections);
         listenersInitialized = true;
     };

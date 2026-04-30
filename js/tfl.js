@@ -29,6 +29,13 @@ const mapElement = document.getElementById("map");
 let listenersInitialized = false;
 let currentMapUrls = { full: '', via: '', final: '' };
 
+const escapeHtml = (value = '') => String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 const renderGuidanceList = (guidance) => {
     accessibilityGuidance.innerHTML = '';
     guidance.forEach((item) => {
@@ -62,7 +69,17 @@ const applyMapPreview = (previewMode) => {
     }
 };
 
-const renderMapPreviewControls = (option) => {
+const getPreferredPreviewMode = (option) => {
+    if (option.id && (option.id.includes('hub') || option.id.includes('transfer'))) {
+        return 'via';
+    }
+    if (option.finalLegMapUrl && option.finalLegMapUrl !== option.mapUrl && option.badge !== 'Tube-first') {
+        return 'via';
+    }
+    return 'full';
+};
+
+const renderMapPreviewControls = (option, preferredPreview = 'full') => {
     mapPreviewControls.innerHTML = '';
     currentMapUrls = {
         full: option.mapUrl,
@@ -85,10 +102,13 @@ const renderMapPreviewControls = (option) => {
     const fullButton = createButton('full', 'Full journey map');
     const viaButton = createButton('via', 'Via interchange map');
     const finalButton = createButton('final', 'Final leg map');
-    fullButton.classList.add('active');
+    const buttonMap = { full: fullButton, via: viaButton, final: finalButton };
+    const initialMode = buttonMap[preferredPreview] ? preferredPreview : 'full';
+    buttonMap[initialMode].classList.add('active');
     mapPreviewControls.appendChild(fullButton);
     mapPreviewControls.appendChild(viaButton);
     mapPreviewControls.appendChild(finalButton);
+    applyMapPreview(initialMode);
 };
 
 const renderRouteOptions = (options) => {
@@ -98,12 +118,12 @@ const renderRouteOptions = (options) => {
         button.type = 'button';
         button.className = 'route-option-button';
         if (index === 0) button.classList.add('active');
-        button.innerHTML = `<strong>${option.title}</strong><span>${option.badge} - ${option.rationale}</span>`;
+        button.innerHTML = `<strong>${escapeHtml(option.title)}</strong><span>${escapeHtml(option.badge)} - ${escapeHtml(option.rationale)}</span>`;
         button.addEventListener('click', () => {
             routeOptionsContainer.querySelectorAll('.route-option-button').forEach((item) => item.classList.remove('active'));
             button.classList.add('active');
-            renderMapPreviewControls(option);
-            applyMapPreview('full');
+            const preferredPreview = getPreferredPreviewMode(option);
+            renderMapPreviewControls(option, preferredPreview);
             renderRouteSteps(option.steps);
             routeMeta.textContent = `${routeMeta.textContent.split(' | ')[0]} | Selected option: ${option.title}`;
         });
@@ -137,7 +157,7 @@ const renderStationBreakdown = (stationBreakdown = []) => {
     stationBreakdown.forEach((entry) => {
         const card = document.createElement('div');
         card.className = 'station-breakdown-card';
-        card.innerHTML = `<h3>${entry.station}</h3><p>${entry.summary}</p><ul>${entry.details.map((detail) => `<li>${detail}</li>`).join('')}</ul>`;
+        card.innerHTML = `<h3>${escapeHtml(entry.station)}</h3><p>${escapeHtml(entry.summary)}</p><ul>${entry.details.map((detail) => `<li>${escapeHtml(detail)}</li>`).join('')}</ul>`;
         stationBreakdownContainer.appendChild(card);
     });
 };
@@ -187,7 +207,7 @@ const renderAssistancePanel = (start, end, startAccessibility, endAccessibility)
         </ul>
         <p><a href="https://tfl.gov.uk/transport-accessibility/help-from-staff" target="_blank" rel="noopener noreferrer">TfL staff assistance information</a></p>
         <p><a href="https://www.nationalrail.co.uk/help-and-assistance/passenger-assist/" target="_blank" rel="noopener noreferrer">National Rail Passenger Assist</a></p>
-        <p><strong>Planned journey:</strong> ${start} to ${end}</p>
+        <p><strong>Planned journey:</strong> ${escapeHtml(start)} to ${escapeHtml(end)}</p>
     `;
 };
 
@@ -261,8 +281,10 @@ const planRoute = async () => {
         renderAssistancePanel(start, end, startAccessibility, endAccessibility);
         renderRouteOptions(options);
         renderRouteSteps(options[0].steps);
-        renderMapPreviewControls(options[0]);
-        applyMapPreview('full');
+        const preferredPreview = (recommendations.policy?.originRerouteRequired || recommendations.policy?.destinationTransferRequired)
+            ? 'via'
+            : getPreferredPreviewMode(options[0]);
+        renderMapPreviewControls(options[0], preferredPreview);
         mapContainer.style.display = "block";
         overlay.classList.add("hidden");
     } catch (error) {
@@ -274,6 +296,12 @@ const setupEventListeners = () => {
     if (listenersInitialized) return;
     document.getElementById("plan-route").addEventListener("click", planRoute);
     overlay.addEventListener("click", hideOverlay);
+    overlay.addEventListener("keydown", (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            hideOverlay();
+        }
+    });
     document.getElementById("reset-button").addEventListener("click", resetSelections);
     listenersInitialized = true;
 };

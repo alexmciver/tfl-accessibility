@@ -1,73 +1,45 @@
 # TfL Accessibility - Free Flow Routes
 
-A modern, accessible journey planner for London's transport network, focusing on step-free and wheelchair-accessible routes.
+Accessible journey planner for London travel with step-free-aware routing guidance.
 
-## Project Structure
+## MVP Scope
 
-The project is organized as follows:
+- Static app (HTML, CSS, JavaScript only).
+- Works in both `file://` mode and hosted `http/https` mode.
+- Uses bundled station/accessibility data (no runtime third-party accessibility API dependency).
+- Builds route guidance for accessibility scenarios including `Full`, `Partial`, `Interchange`, and `None`.
 
-### CSS and SCSS
+## Run the App
 
-- `src/scss/`: Source SCSS files
-  - `base/`: Base styles (variables, typography, reset)
-  - `components/`: Component styles (buttons, forms, etc.)
-  - `layouts/`: Layout styles (header, footer, map)
-  - `utils/`: Utilities (mixins, helper classes)
-- `css/`: Compiled CSS (manual edits not recommended)
-- `dist/css/`: Production-ready, minified CSS
+- Open `index.html` directly, or host the folder with any static web server.
+- Accessibility guide is in `accessibility.html`.
 
-### JavaScript
+## Main Files
 
-- `js/`: Main JavaScript files
-  - `main.js`: Core functionality (dark mode, forms, accessibility)
-  - `map.js`: Map and routing functionality
-  - `tfl.js`: TfL API integration
-- `dist/js/`: Production-ready, minified JavaScript
+- `index.html`: Journey planner UI.
+- `accessibility.html`: Accessibility explainer page.
+- `css/style.css`: App styling.
+- `data/stations.json`: Station accessibility dataset.
+- `js/tfl.js`: Planner logic for hosted mode.
+- `js/tfl.file.js`: Planner logic for `file://` mode.
+- `js/modules/routingEngine.js`: Scenario strategy generation and route option ranking.
+- `js/modules/liveContext.js`: Deterministic context generator for lift/departure guidance.
 
-### HTML
+## Google Maps Behaviour
 
-- `index.html`: Main journey planner page
-- `accessibility.html`: Accessibility guide and information
-- `dist/`: Production-ready, compressed HTML files
+To avoid exposing secrets, no API key is stored in source code.
 
-## Development Setup
-
-This project uses Gulp for task automation:
-
-1. Install dependencies:
+- Optional runtime key:
+```html
+<script>
+  window.FREEFLOW_GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_EMBED_KEY';
+</script>
 ```
-npm install
-```
+- With a key, the app uses Google Embed Directions URLs.
+- Without a key, the app uses keyless embedded map queries so map previews still render.
 
-2. Development mode (with live reload):
-```
-npm start
-```
+## Security Notes
 
-3. Build for production:
-```
-npm run build
-```
-
-## Accessibility Data Model
-
-The planner is self-contained and does not rely on runtime third-party accessibility APIs.
-
-- Accessibility routing context is derived from bundled station data.
-- Constraint summaries, lift-status guidance, and route fallbacks are generated deterministically in-app.
-- This keeps behaviour consistent in both `file://` and hosted modes without additional services.
-
-## File Organization Notes
-
-- All JavaScript is organized in the root `js/` folder, not in `src/js/`
-- SCSS files are in `src/scss/` and compile to `dist/css/`
-- The build process compresses assets and creates production files in `dist/`
-
-## Required Files
-
-The minimum files needed to run the application are:
-
-- HTML files: `index.html`, `accessibility.html`
-- CSS files: `css/style.css` or the compiled CSS in `dist/css/`
-- JS files: `js/main.js`, `js/map.js`
-- Assets: All files in the `assets/` directory 
+- External links opened in a new tab use `rel="noopener noreferrer"`.
+- Dynamic UI strings are HTML-escaped before being inserted into template-based markup.
+- Inline JavaScript has been removed from HTML entry pages and moved to dedicated bootstrap files.

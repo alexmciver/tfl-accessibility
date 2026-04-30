@@ -13,11 +13,14 @@ export class MapService {
 
     planRoute(startStation, endStation) {
         if (!this.mapElement) return;
-        
-        const mapUrl = `https://www.google.com/maps/embed/v1/directions?key=${this.API_KEY}`
-            + `&origin=${encodeURIComponent(startStation + ' Station, London')}`
-            + `&destination=${encodeURIComponent(endStation + ' Station, London')}`
-            + `&mode=transit&zoom=12`;
+        const origin = `${startStation} Station, London`;
+        const destination = `${endStation} Station, London`;
+        const mapUrl = this.API_KEY
+            ? `https://www.google.com/maps/embed/v1/directions?key=${this.API_KEY}`
+                + `&origin=${encodeURIComponent(origin)}`
+                + `&destination=${encodeURIComponent(destination)}`
+                + `&mode=transit&zoom=12`
+            : `https://maps.google.com/maps?output=embed&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(destination)}&dirflg=r`;
 
         this.mapElement.src = mapUrl;
     }
