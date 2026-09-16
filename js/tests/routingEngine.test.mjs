@@ -15,9 +15,12 @@ const run = async () => {
         startAccessibility: 'Full',
         endAccessibility: 'Full'
     });
+    assert.equal(keylessResult.degraded, true);
+    assert.equal((keylessResult.liveContext.journeyStrategies || []).length, 0);
     assert.match(keylessResult.recommended.mapUrl, /maps\.google\.com\/maps\?output=embed&saddr=/);
     assert.match(keylessResult.recommended.mapUrl, /daddr=/);
     assert.match(keylessResult.recommended.mapUrl, /output=embed/);
+    assert.match(keylessResult.assumptions.join(' '), /Live TfL data unavailable/);
 
     const keyedResult = await buildDynamicRecommendations({
         apiKey: 'test-key',
@@ -36,8 +39,30 @@ const run = async () => {
         endAccessibility: 'None'
     });
     assert.equal(inaccessibleDestinationResult.policy.destinationTransferRequired, true);
-    assert.match(inaccessibleDestinationResult.liveContext.destinationHub, /Liverpool Street Station, London/);
-    assert.match(inaccessibleDestinationResult.recommended.steps[1].text, /Liverpool Street Station, London/);
+    const destHubName = inaccessibleDestinationResult.liveContext.destinationHub.replace(/ Station, London$/i, '');
+    assert.equal(stationsDataFallback[destHubName], 'Full');
+    assert.match(inaccessibleDestinationResult.recommended.steps[1].text, new RegExp(destHubName));
+
+    const inaccessibleOriginResult = await buildDynamicRecommendations({
+        apiKey: '',
+        start: 'Aldgate',
+        end: 'Abbey Road',
+        startAccessibility: 'None',
+        endAccessibility: 'Full'
+    });
+    assert.equal(inaccessibleOriginResult.scenario, 'None->Full');
+    assert.equal(inaccessibleOriginResult.policy.originRerouteRequired, true);
+    assert.equal(inaccessibleOriginResult.policy.destinationTransferRequired, false);
+    const originHubName = inaccessibleOriginResult.liveContext.originHub.replace(/ Station, London$/i, '');
+    assert.equal(stationsDataFallback[originHubName], 'Full');
+    assert.match(inaccessibleOriginResult.recommended.steps[0].text, /Aldgate/);
+    assert.match(inaccessibleOriginResult.recommended.steps[0].text, new RegExp(originHubName));
+    assert.equal(
+        decodeURIComponent(inaccessibleOriginResult.recommended.mapUrl).includes('saddr=Aldgate Station'),
+        false,
+        'None->Full map must not start at the inaccessible origin'
+    );
+    assert.match(decodeURIComponent(inaccessibleOriginResult.recommended.mapUrl), new RegExp(`saddr=${originHubName} Station`));
 
     const categories = ['Full', 'Interchange', 'Partial', 'None'];
     const stationsByCategory = categories.reduce((acc, category) => {
@@ -67,19 +92,46 @@ const run = async () => {
                     });
 
                     assert.equal(result.scenario, `${startCategory}->${endCategory}`);
-                    assert.equal(
-                        result.policy.originRerouteRequired,
-                        ['None', 'Partial'].includes(startCategory),
-                        `Origin reroute policy mismatch for ${startStation} -> ${endStation}`
-                    );
-                    assert.equal(
-                        result.policy.destinationTransferRequired,
-                        ['None', 'Partial', 'Interchange'].includes(endCategory),
-                        `Destination transfer policy mismatch for ${startStation} -> ${endStation}`
-                    );
+                    if (result.policy.preferSurfaceRoute) {
+                        assert.equal(result.policy.originRerouteRequired, false);
+                        assert.equal(result.policy.destinationTransferRequired, false);
+                        assert.equal(result.recommended.surfaceRoute, true);
+                    } else {
+                        assert.equal(
+                            result.policy.originRerouteRequired,
+                            ['None', 'Partial'].includes(startCategory),
+                            `Origin reroute policy mismatch for ${startStation} -> ${endStation}`
+                        );
+                        assert.equal(
+                            result.policy.destinationTransferRequired,
+                            ['None', 'Partial', 'Interchange'].includes(endCategory),
+                            `Destination transfer policy mismatch for ${startStation} -> ${endStation}`
+                        );
+                        if (['None', 'Partial'].includes(startCategory) || ['None', 'Partial', 'Interchange'].includes(endCategory)) {
+                            assert.equal(result.trust.differsFromTfl, true, `Expected TfL correction flag for ${startStation} -> ${endStation}`);
+                            assert.equal(result.recommended.freeflowVerified, true);
+                        }
+                    }
                     assert.ok(result.recommended, `Missing recommended option for ${startStation} -> ${endStation}`);
                     assert.ok(result.recommended.mapUrl.includes('output=embed'), `Missing embedded map for ${startStation} -> ${endStation}`);
                     assert.ok(result.recommended.steps.length > 0, `Missing route steps for ${startStation} -> ${endStation}`);
+
+                    const mapText = decodeURIComponent(result.recommended.mapUrl);
+                    if (['None', 'Partial'].includes(startCategory) && !result.policy.preferSurfaceRoute) {
+                        assert.equal(
+                            mapText.includes(`saddr=${startStation} Station`),
+                            false,
+                            `Map must not start at constrained origin ${startStation} -> ${endStation}`
+                        );
+                        assert.match(
+                            result.recommended.steps[0].text,
+                            /accessible hub|bus\/walk transfer/i,
+                            `Origin hub step missing for ${startStation} -> ${endStation}`
+                        );
+                    }
+                    if (result.policy.preferSurfaceRoute) {
+                        assert.match(result.recommended.steps[0].text, /bus|walk/i);
+                    }
                 }
             }
         }

@@ -23,8 +23,13 @@ export const handleError = (error, type = ErrorTypes.NETWORK) => {
     // Log error for debugging
     console.error(`${errorMessage}:`, error);
 
+    if (type === ErrorTypes.VALIDATION && error?.message) {
+        showErrorMessage(error.message);
+        return;
+    }
+
     // Show user-friendly message
-    showErrorMessage(`${errorMessage}. Please try again later.`);
+    showErrorMessage(error?.message ? `${errorMessage}: ${error.message}` : `${errorMessage}. Please try again.`);
 };
 
 // User-friendly error display

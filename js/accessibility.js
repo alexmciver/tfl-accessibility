@@ -23,7 +23,15 @@ const initializeBackToTop = () => {
     });
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+const bootAccessibilityPage = () => {
+    if (window.__freeflowAccessibilityInitialized) return;
+    window.__freeflowAccessibilityInitialized = true;
     initializeDarkMode();
     initializeBackToTop();
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootAccessibilityPage);
+} else {
+    bootAccessibilityPage();
+}

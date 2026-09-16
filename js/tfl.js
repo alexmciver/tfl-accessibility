@@ -4,31 +4,72 @@ import { handleError, ErrorTypes } from './utils/errorHandler.js';
 import { initializeDarkMode } from './modules/darkMode.js';
 import { API_KEY } from './config.js';
 import { buildDynamicRecommendations } from './modules/routingEngine.js';
+import { StationCombobox, getAccessMeta } from './modules/stationSearch.js';
+import {
+    loadAccessProfile,
+    saveAccessProfile,
+    readProfileFromForm,
+    writeProfileToForm
+} from './modules/accessProfile.js';
+import { buildJourneyGuidance } from './modules/journeyGuidance.js';
+import { trustBannerCopy } from './modules/tflTrust.js';
+import { buildMapStages, buildMapLegend } from './modules/mapStages.js';
+import { buildExampleJourneys } from './modules/hubResolver.js';
+import { buildConfidenceReport, buildAssistanceBriefing } from './modules/confidenceEngine.js';
+import {
+    learnFromFeedback,
+    memorySummary,
+    loadRouteMemory
+} from './modules/routeLearning.js';
 
 const stationService = new StationService();
 const mapService = new MapService();
 
-const loadingSpinner = document.getElementById("loading-spinner");
-const startStationSelect = document.getElementById("start-station");
-const endStationSelect = document.getElementById("end-station");
-const mapContainer = document.getElementById("map-container");
-const overlay = document.getElementById("overlay");
-const backToTopButton = document.getElementById("back-to-top");
-const routeRecommendation = document.getElementById("route-recommendation");
-const routeMeta = document.getElementById("route-meta");
-const scenarioFired = document.getElementById("scenario-fired");
-const journeyQuickSummary = document.getElementById("journey-quick-summary");
-const accessibilityGuidance = document.getElementById("accessibility-guidance");
-const stationBreakdownContainer = document.getElementById("station-breakdown");
-const liftStatusContainer = document.getElementById("lift-status");
-const liveDeparturesContainer = document.getElementById("live-departures");
-const assistancePanel = document.getElementById("assistance-panel");
-const mapPreviewControls = document.getElementById("map-preview-controls");
-const routeOptionsContainer = document.getElementById("route-options");
-const routeStepsContainer = document.getElementById("route-steps");
-const mapElement = document.getElementById("map");
+const loadingSpinner = document.getElementById('loading-spinner');
+const startStationSelect = document.getElementById('start-station');
+const endStationSelect = document.getElementById('end-station');
+const mapContainer = document.getElementById('map-container');
+const overlay = document.getElementById('overlay');
+const backToTopButton = document.getElementById('back-to-top');
+const routeRecommendation = document.getElementById('route-recommendation');
+const routeMeta = document.getElementById('route-meta');
+const scenarioFired = document.getElementById('scenario-fired');
+const journeyQuickSummary = document.getElementById('journey-quick-summary');
+const accessibilityGuidance = document.getElementById('accessibility-guidance');
+const stationBreakdownContainer = document.getElementById('station-breakdown');
+const liftStatusContainer = document.getElementById('lift-status');
+const liveDeparturesContainer = document.getElementById('live-departures');
+const assistancePanel = document.getElementById('assistance-panel');
+const mapPreviewControls = document.getElementById('map-preview-controls');
+const mapElement = document.getElementById('map');
+const mapStageCaption = document.getElementById('map-stage-caption');
+const mapLegend = document.getElementById('map-legend');
+const journeyCard = document.getElementById('journey-summary');
+const accessScoreEl = document.getElementById('access-score');
+const journeyTimelineEl = document.getElementById('journey-timeline');
+const recentListEl = document.getElementById('recent-journeys');
+const exampleChipHost = document.getElementById('example-journeys');
+const stepFreeFilter = document.getElementById('step-free-filter');
+const swapButton = document.getElementById('swap-stations');
+const copyJourneyButton = document.getElementById('copy-journey');
+const copyAssistanceButton = document.getElementById('copy-assistance');
+const printJourneyButton = document.getElementById('print-journey');
+const degradedBanner = document.getElementById('degraded-banner');
+const coachPanel = document.getElementById('coach-panel');
+const planAPanel = document.getElementById('plan-a-panel');
+const planBPanel = document.getElementById('plan-b-panel');
+
+const RECENT_KEY = 'freeflow_recent_journeys';
+
 let listenersInitialized = false;
 let currentMapUrls = { full: '', via: '', final: '' };
+let currentMapStages = [];
+let startCombobox;
+let endCombobox;
+let latestJourneyText = '';
+let latestAssistanceText = '';
+let latestPlanContext = null;
+let currentProfile = loadAccessProfile();
 
 const escapeHtml = (value = '') => String(value)
     .replace(/&/g, '&amp;')
@@ -37,7 +78,25 @@ const escapeHtml = (value = '') => String(value)
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
+const getFilterMode = () => (stepFreeFilter?.checked ? 'step-free' : 'all');
+
+const getStationList = () => Object.entries(stationService.stationData)
+    .map(([name, accessibility]) => ({ name, accessibility }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+const setJourneyActive = (isActive) => {
+    if (!journeyCard) return;
+    journeyCard.classList.toggle('is-active', isActive);
+    journeyCard.classList.toggle('is-empty', !isActive);
+};
+
+const persistProfileFromForm = () => {
+    currentProfile = saveAccessProfile(readProfileFromForm());
+    return currentProfile;
+};
+
 const renderGuidanceList = (guidance) => {
+    if (!accessibilityGuidance) return;
     accessibilityGuidance.innerHTML = '';
     guidance.forEach((item) => {
         const listItem = document.createElement('li');
@@ -46,226 +105,578 @@ const renderGuidanceList = (guidance) => {
     });
 };
 
-const renderRouteSteps = (steps = []) => {
-    routeStepsContainer.innerHTML = '';
-    const orderedList = document.createElement('ol');
-    orderedList.className = 'route-step-list';
-    steps.forEach((step) => {
-        const listItem = document.createElement('li');
-        listItem.textContent = step.text;
-        orderedList.appendChild(listItem);
-    });
-    routeStepsContainer.appendChild(orderedList);
+const renderDegradedBanner = (recommendations) => {
+    if (!degradedBanner) return;
+    const trustCopy = trustBannerCopy(recommendations.trust);
+    const parts = [];
+
+    if (recommendations.degraded) {
+        parts.push(`
+            <p><strong>Live TfL data is not active.</strong>
+            Showing Free Flow published-access guidance and hub contingencies.
+            Add a TfL app key for live rail timing and lift disruptions.</p>
+        `);
+    }
+    if (trustCopy) {
+        parts.push(`
+            <p><strong>${escapeHtml(trustCopy.title)}</strong></p>
+            <p>${escapeHtml(trustCopy.body)}</p>
+            <ul>${trustCopy.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        `);
+    }
+
+    if (!parts.length) {
+        degradedBanner.hidden = true;
+        degradedBanner.textContent = '';
+        degradedBanner.classList.remove('trust-banner', 'is-corrected');
+        return;
+    }
+
+    degradedBanner.hidden = false;
+    degradedBanner.classList.toggle('trust-banner', Boolean(trustCopy));
+    degradedBanner.classList.toggle('is-corrected', Boolean(trustCopy));
+    degradedBanner.innerHTML = parts.join('');
 };
 
-const renderJourneyQuickSummary = (start, end, recommendations) => {
+const getBaseGuidance = (start, end, startAccessibility, endAccessibility, policy = {}) => {
+    const guidance = buildJourneyGuidance(start, end, startAccessibility, endAccessibility, policy);
+    routeRecommendation.textContent = guidance.headline;
+    return guidance.items;
+};
+
+const renderConfidenceHero = (confidence) => {
+    if (!accessScoreEl) return;
+    accessScoreEl.hidden = false;
+    accessScoreEl.innerHTML = `
+        <div class="score-ring" aria-hidden="true"><span>${confidence.score}</span></div>
+        <div class="score-copy">
+            <p class="score-eyebrow">Access confidence</p>
+            <p class="score-grade">${escapeHtml(confidence.grade)}</p>
+            <p>${escapeHtml(confidence.summary)}</p>
+            <p class="score-profile">Profile: ${escapeHtml(confidence.profileLine)}</p>
+        </div>
+    `;
+    accessScoreEl.dataset.grade = confidence.grade.toLowerCase().replace(/\s+/g, '-');
+};
+
+const renderCoach = (confidence) => {
+    if (!coachPanel) return;
+    coachPanel.hidden = false;
+    coachPanel.innerHTML = `
+        <h3 class="panel-title">Do this now</h3>
+        <ul class="coach-list">${confidence.coach.now.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        <h3 class="panel-title">At the station</h3>
+        <ul class="coach-list">${confidence.coach.atStation.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        <h3 class="panel-title">If lifts fail</h3>
+        <ul class="coach-list">${confidence.coach.ifFails.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+    `;
+};
+
+const renderScoredLegs = (scoredSteps = []) => {
+    if (!journeyTimelineEl) return;
+    journeyTimelineEl.innerHTML = '';
+    if (!scoredSteps.length) return;
+
+    const heading = document.createElement('h3');
+    heading.className = 'panel-title';
+    heading.textContent = 'Leg-by-leg certainty';
+    journeyTimelineEl.appendChild(heading);
+
+    const list = document.createElement('ol');
+    list.className = 'timeline-list certainty-timeline';
+    scoredSteps.forEach((step, index) => {
+        const certainty = step.certainty || { label: 'Unknown', className: 'certainty-medium' };
+        const item = document.createElement('li');
+        item.className = certainty.className;
+        item.innerHTML = `
+            <span class="timeline-index">${index + 1}</span>
+            <span class="timeline-body">
+                <span class="timeline-top">
+                    <strong>${escapeHtml((step.type || 'step').replace(/^\w/, (c) => c.toUpperCase()))}</strong>
+                    <span class="certainty-chip ${certainty.className}">${escapeHtml(certainty.label)}</span>
+                </span>
+                <span>${escapeHtml(step.text)}</span>
+                ${step.durationMins ? `<em class="leg-meta">${escapeHtml(String(step.durationMins))} min</em>` : ''}
+            </span>
+        `;
+        list.appendChild(item);
+    });
+    journeyTimelineEl.appendChild(list);
+};
+
+const renderPlanCard = (container, plan, label, confidenceSteps = null) => {
+    if (!container) return;
+    if (!plan) {
+        container.innerHTML = '';
+        return;
+    }
+    const duration = typeof plan.durationMins === 'number' ? `${plan.durationMins} mins` : 'Time varies';
+    const changes = typeof plan.interchangeCount === 'number'
+        ? `${plan.interchangeCount} change${plan.interchangeCount === 1 ? '' : 's'}`
+        : 'Changes vary';
+    const modeSet = [...new Set((plan.steps || []).map((step) => step.type).filter(Boolean))];
+    const stepsHtml = (confidenceSteps || plan.steps || []).map((step, index) => {
+        const certainty = step.certainty
+            ? `<span class="certainty-chip ${step.certainty.className}">${escapeHtml(step.certainty.label)}</span>`
+            : '';
+        return `<li>
+            <span class="step-type">${escapeHtml(step.type || 'step')}</span>
+            <span class="step-copy">${escapeHtml(step.text)}</span>
+            ${certainty}
+            ${step.durationMins ? `<em>${escapeHtml(String(step.durationMins))} min</em>` : ''}
+            <span class="visually-hidden">Leg ${index + 1}</span>
+        </li>`;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="plan-panel-header">
+            <p class="plan-label">${escapeHtml(label)}</p>
+            <h3>${escapeHtml(plan.title)}</h3>
+            <p>${escapeHtml(plan.rationale || '')}</p>
+            <div class="plan-metrics">
+                <span>${escapeHtml(duration)}</span>
+                <span>${escapeHtml(changes)}</span>
+                <span>${escapeHtml(plan.badge || 'Route')}</span>
+            </div>
+            <div class="mode-chip-row">${modeSet.map((mode) => `<span class="mode-chip">${escapeHtml(mode)}</span>`).join('')}</div>
+        </div>
+        <ol class="route-step-list plan-step-list">${stepsHtml}</ol>
+    `;
+};
+
+const renderJourneyQuickSummary = (start, end, confidence, planA) => {
     if (!journeyQuickSummary) return;
-    const needsTransfer = recommendations.policy?.originRerouteRequired || recommendations.policy?.destinationTransferRequired;
-    const message = needsTransfer
-        ? `Route from ${start} to ${end}: travel by accessible rail to a suitable hub, then complete any constrained section by bus or walking transfer.`
-        : `Route from ${start} to ${end}: a direct step-free rail journey is available, with alternatives shown below.`;
-    journeyQuickSummary.innerHTML = `<p>${escapeHtml(message)}</p>`;
+    const duration = planA?.durationMins ? `About ${planA.durationMins} minutes.` : '';
+    journeyQuickSummary.innerHTML = `
+        <p class="journey-pair">${escapeHtml(start)} <span aria-hidden="true">→</span> ${escapeHtml(end)}</p>
+        <p><strong>${escapeHtml(confidence.grade)}</strong> access confidence (${confidence.score}/100). ${escapeHtml(confidence.summary)}</p>
+        <p class="journey-scoreline">${escapeHtml(duration)} ${escapeHtml(confidence.profileLine)}</p>
+    `;
 };
 
 const applyMapPreview = (previewMode) => {
-    if (previewMode === 'via' && currentMapUrls.via) {
-        mapElement.src = currentMapUrls.via;
-        return;
-    }
-    if (previewMode === 'final' && currentMapUrls.final) {
-        mapElement.src = currentMapUrls.final;
-    } else if (currentMapUrls.full) {
-        mapElement.src = currentMapUrls.full;
-    }
+    const stage = currentMapStages.find((item) => item.id === previewMode) || currentMapStages[0];
+    if (!stage) return;
+    if (mapElement) mapElement.src = stage.url;
+    if (mapStageCaption) mapStageCaption.textContent = stage.caption;
+    if (mapElement) mapElement.title = `Route map: ${stage.label} — ${stage.hint}`;
 };
 
-const getPreferredPreviewMode = (option) => {
-    if (option.id && (option.id.includes('hub') || option.id.includes('transfer'))) {
-        return 'via';
+const renderMapLegend = (items = []) => {
+    if (!mapLegend) return;
+    if (!items.length) {
+        mapLegend.innerHTML = '';
+        return;
     }
-    if (option.finalLegMapUrl && option.finalLegMapUrl !== option.mapUrl && option.badge !== 'Tube-first') {
+    mapLegend.innerHTML = items.map((item) => `
+        <div class="map-legend-item map-legend-${escapeHtml(item.tone)}">
+            <strong>${escapeHtml(item.label)}</strong>
+            <span>${escapeHtml(item.note)}</span>
+        </div>
+    `).join('');
+};
+
+const getPreferredPreviewMode = (option, policy = {}) => {
+    if (policy.preferSurfaceRoute || option?.surfaceRoute) return 'via';
+    if (policy.originRerouteRequired || policy.destinationTransferRequired) return 'via';
+    if (option?.id && (option.id.includes('hub') || option.id.includes('transfer') || option.contingency)) {
         return 'via';
     }
     return 'full';
 };
 
-const renderMapPreviewControls = (option, preferredPreview = 'full') => {
-    mapPreviewControls.innerHTML = '';
+const renderLearningPanel = (recommendations, start, end) => {
+    const panel = document.getElementById('learning-panel');
+    if (!panel) return;
+
+    const learned = recommendations.learning || memorySummary(loadRouteMemory());
+    panel.hidden = false;
+    panel.innerHTML = `
+        <h3 class="panel-title">Help Free Flow learn</h3>
+        <p class="learning-summary">${escapeHtml(learned.line || 'No lessons stored on this device yet.')}</p>
+        <p class="learning-hint">Your feedback stays on this device and improves later plans for similar corridors.</p>
+        <div class="learning-actions">
+            <button type="button" class="ghost-button" data-feedback="helpful">This plan helped</button>
+            <button type="button" class="ghost-button" data-feedback="prefer-surface">Should be bus / walk</button>
+            <button type="button" class="ghost-button" data-feedback="wrong-hub">Wrong hub / Tube detour</button>
+        </div>
+        <p id="learning-status" class="learning-status" aria-live="polite"></p>
+    `;
+
+    panel.querySelectorAll('[data-feedback]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const feedback = button.getAttribute('data-feedback');
+            const memory = learnFromFeedback({
+                start,
+                end,
+                feedback,
+                liveContext: recommendations.liveContext || {}
+            });
+            const status = panel.querySelector('#learning-status');
+            const summary = memorySummary(memory);
+            if (status) {
+                status.textContent = feedback === 'helpful'
+                    ? `Thanks — noted. ${summary.line}`
+                    : `Learned for next time. ${summary.line}`;
+            }
+            const summaryEl = panel.querySelector('.learning-summary');
+            if (summaryEl) summaryEl.textContent = summary.line;
+        });
+    });
+};
+
+const renderMapPreviewControls = (option, context = {}) => {
+    if (!mapPreviewControls || !option) return;
+
+    const {
+        preferredPreview = 'full',
+        start = '',
+        end = '',
+        policy = {},
+        originHub = '',
+        destinationHub = '',
+        startAccessibility = '',
+        endAccessibility = ''
+    } = context;
+
+    currentMapStages = buildMapStages({
+        option,
+        start,
+        end,
+        policy,
+        originHub,
+        destinationHub
+    });
     currentMapUrls = {
         full: option.mapUrl,
         via: option.waypointMapUrl || option.mapUrl,
         final: option.finalLegMapUrl || option.mapUrl
     };
-    const createButton = (id, label) => {
+
+    renderMapLegend(buildMapLegend({
+        start,
+        end,
+        policy,
+        originHub,
+        destinationHub,
+        startAccessibility,
+        endAccessibility
+    }));
+
+    mapPreviewControls.innerHTML = '';
+    const preferred = currentMapStages.some((stage) => stage.id === preferredPreview)
+        ? preferredPreview
+        : (currentMapStages[0]?.id || 'full');
+
+    currentMapStages.forEach((stage, index) => {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'map-preview-button';
-        button.dataset.preview = id;
-        button.textContent = label;
+        button.dataset.preview = stage.id;
+        button.setAttribute('role', 'tab');
+        button.setAttribute('aria-selected', stage.id === preferred ? 'true' : 'false');
+        button.innerHTML = `
+            <span class="map-stage-index">${index + 1}</span>
+            <span class="map-stage-copy">
+                <strong>${escapeHtml(stage.label)}</strong>
+                <em>${escapeHtml(stage.hint)}</em>
+            </span>
+        `;
         button.addEventListener('click', () => {
-            mapPreviewControls.querySelectorAll('.map-preview-button').forEach((item) => item.classList.remove('active'));
+            mapPreviewControls.querySelectorAll('.map-preview-button').forEach((item) => {
+                item.classList.remove('active');
+                item.setAttribute('aria-selected', 'false');
+            });
             button.classList.add('active');
-            applyMapPreview(id);
+            button.setAttribute('aria-selected', 'true');
+            applyMapPreview(stage.id);
         });
-        return button;
-    };
-    const fullButton = createButton('full', 'Full journey map');
-    const viaButton = createButton('via', 'Via interchange map');
-    const finalButton = createButton('final', 'Final leg map');
-    const buttonMap = { full: fullButton, via: viaButton, final: finalButton };
-    const initialMode = buttonMap[preferredPreview] ? preferredPreview : 'full';
-    buttonMap[initialMode].classList.add('active');
-    mapPreviewControls.appendChild(fullButton);
-    mapPreviewControls.appendChild(viaButton);
-    mapPreviewControls.appendChild(finalButton);
-    applyMapPreview(initialMode);
-};
-
-const renderRouteOptions = (options) => {
-    routeOptionsContainer.innerHTML = '';
-    options.forEach((option, index) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'route-option-button';
-        if (index === 0) button.classList.add('active');
-        button.innerHTML = `<strong>${escapeHtml(option.title)}</strong><span>${escapeHtml(option.badge)} - ${escapeHtml(option.rationale)}</span>`;
-        button.addEventListener('click', () => {
-            routeOptionsContainer.querySelectorAll('.route-option-button').forEach((item) => item.classList.remove('active'));
-            button.classList.add('active');
-            const preferredPreview = getPreferredPreviewMode(option);
-            renderMapPreviewControls(option, preferredPreview);
-            renderRouteSteps(option.steps);
-            routeMeta.textContent = `${routeMeta.textContent.split(' | ')[0]} | Selected option: ${option.title}`;
-        });
-        routeOptionsContainer.appendChild(button);
+        if (stage.id === preferred) button.classList.add('active');
+        mapPreviewControls.appendChild(button);
     });
-};
 
-const getBaseGuidance = (start, end, startAccessibility, endAccessibility) => {
-    const guidance = [];
-    if (startAccessibility === 'Full' && endAccessibility === 'Partial') {
-        routeRecommendation.textContent = 'Destination access is limited. Stay on rail for the main trip, then transfer for the last section.';
-        guidance.push(`Do this now: travel by Tube from ${start}, then leave at an accessible interchange before ${end}.`);
-        guidance.push(`Finish safely: use an accessible bus or short walk for the final approach to ${end}.`);
-    } else if (startAccessibility === 'None' || endAccessibility === 'None') {
-        routeRecommendation.textContent = 'One station is not step-free. This plan avoids inaccessible sections where possible.';
-        guidance.push(`Do this now: use rail to an accessible hub near ${end}, then transfer by bus or short walk.`);
-    } else if (startAccessibility === 'Partial' || endAccessibility === 'Partial') {
-        routeRecommendation.textContent = 'This journey has partial step-free access. Platform checks are required.';
-        guidance.push('Do this now: confirm platform and exit access before departure.');
-        guidance.push('Keep a backup: be ready to switch to an accessible bus for any constrained segment.');
-    } else {
-        routeRecommendation.textContent = 'A direct step-free route is available.';
-        guidance.push('Do this now: follow the recommended rail route. Alternatives are shown below.');
-    }
-    guidance.push('Before you leave: check lift and service status again.');
-    guidance.push('At the station: ask staff for a boarding ramp if required.');
-    return guidance;
+    applyMapPreview(preferred);
 };
 
 const renderStationBreakdown = (stationBreakdown = []) => {
+    if (!stationBreakdownContainer) return;
     stationBreakdownContainer.innerHTML = '';
+    if (!stationBreakdown.length) return;
+    const heading = document.createElement('h3');
+    heading.className = 'panel-title';
+    heading.textContent = 'Station access detail';
+    stationBreakdownContainer.appendChild(heading);
+
     stationBreakdown.forEach((entry) => {
+        const level = stationService.stationData[entry.station] || 'Unknown';
+        const meta = getAccessMeta(level);
         const card = document.createElement('div');
         card.className = 'station-breakdown-card';
-        card.innerHTML = `<h3>${escapeHtml(entry.station)}</h3><p>${escapeHtml(entry.summary)}</p><ul>${entry.details.map((detail) => `<li>${escapeHtml(detail)}</li>`).join('')}</ul>`;
+        card.innerHTML = `
+            <div class="station-card-top">
+                <h3>${escapeHtml(entry.station)}</h3>
+                <span class="access-chip ${meta.className}">${escapeHtml(meta.label)}</span>
+            </div>
+            <p>${escapeHtml(entry.summary)}</p>
+            <ul>${entry.details.map((detail) => `<li>${escapeHtml(detail)}</li>`).join('')}</ul>
+        `;
         stationBreakdownContainer.appendChild(card);
     });
 };
 
-const renderLiveDepartures = (departures = []) => {
+const renderLiveDepartures = (departures = [], isLive = false) => {
+    if (!liveDeparturesContainer) return;
     liveDeparturesContainer.innerHTML = '';
-    if (departures.length === 0) {
-        liveDeparturesContainer.textContent = 'Live departures unavailable for the selected origin right now.';
+    const heading = document.createElement('h3');
+    heading.className = 'panel-title';
+    heading.textContent = 'Live departures near origin';
+    liveDeparturesContainer.appendChild(heading);
+
+    if (!isLive || !departures.length) {
+        const empty = document.createElement('p');
+        empty.className = 'panel-note';
+        empty.textContent = 'Live departures unavailable — open TfL Go or station boards for times on the day.';
+        liveDeparturesContainer.appendChild(empty);
         return;
     }
-    const title = document.createElement('h3');
-    title.textContent = 'Live departures from origin area';
-    liveDeparturesContainer.appendChild(title);
+
+    const note = document.createElement('p');
+    note.className = 'panel-note';
+    note.textContent = 'Live arrivals from TfL — always confirm on the day.';
+    liveDeparturesContainer.appendChild(note);
+
     const list = document.createElement('ul');
+    list.className = 'departure-list';
     departures.forEach((item) => {
         const row = document.createElement('li');
-        row.textContent = `${item.line} to ${item.destination} - due in ${item.dueInMins} min`;
+        row.innerHTML = `<strong>${escapeHtml(item.line)}</strong><span>to ${escapeHtml(item.destination)}</span><em>${escapeHtml(String(item.dueInMins))} min</em>`;
         list.appendChild(row);
     });
     liveDeparturesContainer.appendChild(list);
 };
 
-const renderLiftStatus = (liftStatus = {}) => {
+const renderLiftStatus = (liveContext = {}) => {
+    if (!liftStatusContainer) return;
+    const liftChecks = liveContext.liftChecks || {};
+    const liftMessages = liveContext.liftMessages || [];
+    const liftsAreLive = Boolean(liveContext.liftsAreLive);
+
     liftStatusContainer.innerHTML = '';
-    const entries = [
-        ['Start lift status', liftStatus.start || 'Unknown'],
-        ['End lift status', liftStatus.end || 'Unknown'],
-        ['Interchange lift status', liftStatus.interchange || 'Unknown']
-    ];
-    entries.forEach(([label, value]) => {
-        const badge = document.createElement('span');
-        badge.className = 'lift-badge';
-        badge.textContent = `${label}: ${value}`;
-        liftStatusContainer.appendChild(badge);
+    const heading = document.createElement('h3');
+    heading.className = 'panel-title';
+    heading.textContent = 'Are the lifts working?';
+    liftStatusContainer.appendChild(heading);
+
+    const note = document.createElement('p');
+    note.className = 'panel-note';
+    note.textContent = liftsAreLive
+        ? 'Live from TfL lift disruptions — still re-check before you travel.'
+        : 'Live lift feed is off. These are published-access guesses, not real-time lift status.';
+    liftStatusContainer.appendChild(note);
+
+    const list = document.createElement('ul');
+    list.className = 'lift-check-list';
+    [
+        ['Start', liftChecks.start],
+        ['End', liftChecks.end],
+        ['Interchange', liftChecks.interchange]
+    ].forEach(([role, check]) => {
+        if (!check) return;
+        const item = document.createElement('li');
+        item.className = `lift-check lift-${check.state || 'unknown'}`;
+        item.innerHTML = `
+            <div class="lift-check-top">
+                <strong>${escapeHtml(role)}: ${escapeHtml(check.station || 'Station')}</strong>
+                <span class="lift-state-chip">${escapeHtml(check.label || 'Unknown')}</span>
+            </div>
+            <p>${escapeHtml(check.detail || '')}</p>
+        `;
+        list.appendChild(item);
     });
+    liftStatusContainer.appendChild(list);
+
+    if (liftMessages.length) {
+        const msgHeading = document.createElement('h4');
+        msgHeading.className = 'lift-message-heading';
+        msgHeading.textContent = 'TfL lift notices';
+        liftStatusContainer.appendChild(msgHeading);
+        const messages = document.createElement('ul');
+        messages.className = 'lift-message-list';
+        liftMessages.forEach((message) => {
+            const item = document.createElement('li');
+            item.textContent = message;
+            messages.appendChild(item);
+        });
+        liftStatusContainer.appendChild(messages);
+    }
 };
 
-const renderAssistancePanel = (start, end, startAccessibility, endAccessibility) => {
-    const likelyRampNeeded = startAccessibility !== 'Full' || endAccessibility !== 'Full';
+const renderAssistancePanel = (start, end, confidence) => {
+    if (!assistancePanel) return;
+    const stations = confidence.assistanceStations || [];
     assistancePanel.innerHTML = `
-        <h3>Assistance planning</h3>
-        <p>${likelyRampNeeded ? 'Ramp and staff assistance may be required on this journey.' : 'Assistance is less likely, but can still be requested in advance.'}</p>
-        <ul>
-            <li>Request help from station staff at departure and interchange points.</li>
-            <li>If travelling to National Rail destinations, plan Passenger Assist ahead of travel.</li>
-            <li>Keep a bus-link fallback ready if lifts are unavailable at any step.</li>
+        <h3 class="panel-title">Assistance pack</h3>
+        <p>Take this briefing to staff or Passenger Assist.</p>
+        <ul class="assistance-station-list">
+            ${stations.length
+        ? stations.map((item) => `<li><strong>${escapeHtml(item.station)}</strong> — ${escapeHtml(item.reason)}</li>`).join('')
+        : '<li>No specific assistance stations flagged for this profile.</li>'}
         </ul>
-        <p><a href="https://tfl.gov.uk/transport-accessibility/help-from-staff" target="_blank" rel="noopener noreferrer">TfL staff assistance information</a></p>
-        <p><a href="https://www.nationalrail.co.uk/help-and-assistance/passenger-assist/" target="_blank" rel="noopener noreferrer">National Rail Passenger Assist</a></p>
+        <p><a href="https://tfl.gov.uk/transport-accessibility/help-from-staff" target="_blank" rel="noopener noreferrer">TfL staff assistance</a></p>
+        <p><a href="https://www.nationalrail.co.uk/help-and-assistance/passenger-assist/" target="_blank" rel="noopener noreferrer">Book Passenger Assist</a></p>
         <p><strong>Planned journey:</strong> ${escapeHtml(start)} to ${escapeHtml(end)}</p>
+        <p class="panel-note">Use “Copy assistance pack” above for a shareable text version.</p>
     `;
-};
-
-const updateJourneyGuidance = (start, end, startAccessibility, endAccessibility) => {
-    renderGuidanceList(getBaseGuidance(start, end, startAccessibility, endAccessibility));
 };
 
 const displayAccessibilityInfo = (start, end) => {
     const startAccessibility = stationService.stationData[start] || 'N/A';
     const endAccessibility = stationService.stationData[end] || 'N/A';
-    document.getElementById("start-accessibility").textContent = `Accessibility: ${startAccessibility}`;
-    document.getElementById("end-accessibility").textContent = `Accessibility: ${endAccessibility}`;
-    updateJourneyGuidance(start, end, startAccessibility, endAccessibility);
+    startCombobox?.updateBadge(startAccessibility);
+    endCombobox?.updateBadge(endAccessibility);
 };
 
-const hideOverlay = () => overlay.classList.add("hidden");
+const readRecent = () => {
+    try {
+        return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+    } catch (error) {
+        return [];
+    }
+};
+
+const saveRecent = (start, end) => {
+    const next = [{ start, end }, ...readRecent().filter((item) => !(item.start === start && item.end === end))].slice(0, 4);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+    renderRecent();
+};
+
+const applyJourneyPair = (start, end) => {
+    startCombobox?.setValue(start);
+    endCombobox?.setValue(end);
+};
+
+const renderRecent = () => {
+    if (!recentListEl) return;
+    const recent = readRecent().filter((item) => (
+        stationService.stationData[item.start] && stationService.stationData[item.end]
+    ));
+    recentListEl.innerHTML = '';
+    if (!recent.length) {
+        recentListEl.hidden = true;
+        return;
+    }
+    recentListEl.hidden = false;
+    const label = document.createElement('p');
+    label.className = 'chip-label';
+    label.textContent = 'Recent journeys';
+    recentListEl.appendChild(label);
+    recent.forEach((item) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'journey-chip';
+        button.textContent = `${item.start} → ${item.end}`;
+        button.addEventListener('click', () => {
+            applyJourneyPair(item.start, item.end);
+            planRoute();
+        });
+        recentListEl.appendChild(button);
+    });
+};
+
+const renderExamples = () => {
+    if (!exampleChipHost) return;
+    exampleChipHost.innerHTML = '';
+    const label = document.createElement('p');
+    label.className = 'chip-label';
+    label.textContent = 'Try a Full step-free pair';
+    exampleChipHost.appendChild(label);
+    buildExampleJourneys(stationService.stationData, 4).forEach((item) => {
+        if (!stationService.stationData[item.start] || !stationService.stationData[item.end]) return;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'journey-chip';
+        button.textContent = `${item.start} → ${item.end}`;
+        button.addEventListener('click', () => {
+            applyJourneyPair(item.start, item.end);
+            planRoute();
+        });
+        exampleChipHost.appendChild(button);
+    });
+};
+
+const buildShareText = (start, end, confidence, planA, planB) => {
+    latestJourneyText = [
+        `Free Flow Routes: ${start} → ${end}`,
+        `Access confidence: ${confidence.score} (${confidence.grade})`,
+        confidence.summary,
+        `Plan A: ${planA?.title || ''}`,
+        ...(confidence.scoredSteps || []).map((step, index) => `${index + 1}. [${step.certainty?.label || 'step'}] ${step.text}`),
+        planB ? `Plan B if lifts fail: ${planB.title}` : '',
+        'Always re-check live lift status with TfL before travel.'
+    ].filter(Boolean).join('\n');
+    latestAssistanceText = buildAssistanceBriefing({ start, end, confidence, planA, planB });
+};
+
+const hideOverlay = () => overlay.classList.add('hidden');
 
 const resetSelections = () => {
+    startCombobox?.clear();
+    endCombobox?.clear();
     startStationSelect.selectedIndex = 0;
     endStationSelect.selectedIndex = 0;
-    document.getElementById("start-accessibility").textContent = '';
-    document.getElementById("end-accessibility").textContent = '';
-    scenarioFired.textContent = '';
-    if (journeyQuickSummary) {
-        journeyQuickSummary.innerHTML = '<p>Choose stations to generate a simple step-by-step plan.</p>';
+    if (accessScoreEl) {
+        accessScoreEl.hidden = true;
+        accessScoreEl.innerHTML = '';
     }
-    routeRecommendation.textContent = 'Select a route to see step-free guidance, interchange notes, and alternatives.';
+    if (journeyTimelineEl) journeyTimelineEl.innerHTML = '';
+    if (coachPanel) {
+        coachPanel.hidden = true;
+        coachPanel.innerHTML = '';
+    }
+    if (planAPanel) planAPanel.innerHTML = '';
+    if (planBPanel) planBPanel.innerHTML = '';
+    if (degradedBanner) {
+        degradedBanner.hidden = true;
+        degradedBanner.textContent = '';
+    }
+    if (journeyQuickSummary) {
+        journeyQuickSummary.innerHTML = '<p>Set your profile, choose two stations, and get Plan A with certainty on every leg — plus Plan B if lifts fail.</p>';
+    }
+    if (scenarioFired) scenarioFired.textContent = '';
+    routeRecommendation.textContent = 'Your guidance will appear here after you plan a route.';
     routeMeta.textContent = '';
     accessibilityGuidance.innerHTML = '';
     stationBreakdownContainer.innerHTML = '';
     liftStatusContainer.innerHTML = '';
     liveDeparturesContainer.innerHTML = '';
     assistancePanel.innerHTML = '';
-    routeOptionsContainer.innerHTML = '';
-    routeStepsContainer.innerHTML = '';
     mapPreviewControls.innerHTML = '';
-    mapContainer.style.display = "none";
-    overlay.classList.remove("hidden");
+    if (mapLegend) mapLegend.innerHTML = '';
+    if (mapStageCaption) {
+        mapStageCaption.textContent = 'Plan a journey to see each access stage on the map.';
+    }
+    currentMapStages = [];
+    mapContainer.style.display = 'none';
+    overlay.classList.add('hidden');
+    latestJourneyText = '';
+    latestAssistanceText = '';
+    latestPlanContext = null;
+    const learningPanel = document.getElementById('learning-panel');
+    if (learningPanel) {
+        learningPanel.hidden = true;
+        learningPanel.innerHTML = '';
+    }
+    setJourneyActive(false);
     mapService.reset();
     stationService.reset();
 };
 
 const planRoute = async () => {
-    const start = startStationSelect.value;
-    const end = endStationSelect.value;
+    const start = startCombobox?.getValue() || startStationSelect.value;
+    const end = endCombobox?.getValue() || endStationSelect.value;
     if (!stationService.validateRouteSelection(start, end)) return;
 
+    const profile = persistProfileFromForm();
     const startAccessibility = stationService.stationData[start] || 'N/A';
     const endAccessibility = stationService.stationData[end] || 'N/A';
     displayAccessibilityInfo(start, end);
@@ -276,85 +687,227 @@ const planRoute = async () => {
             start,
             end,
             startAccessibility,
-            endAccessibility
+            endAccessibility,
+            profile
         });
-        const options = [recommendations.recommended, ...recommendations.alternatives];
-        renderJourneyQuickSummary(start, end, recommendations);
-        scenarioFired.textContent = `Scenario fired: ${recommendations.scenario}`;
-        routeMeta.textContent = `${recommendations.degraded ? 'Fallback confidence' : 'Live-data confidence'} | Scenario: ${recommendations.scenario} | Selected option: ${options[0].title}`;
+
+        const planA = recommendations.planA || recommendations.recommended;
+        const planB = recommendations.planB || recommendations.alternatives[0] || null;
+        const confidence = buildConfidenceReport({
+            start,
+            end,
+            startAccessibility,
+            endAccessibility,
+            planA,
+            planB,
+            liveContext: recommendations.liveContext,
+            profile
+        });
+
+        const hasLiveJourney = (recommendations.liveContext?.journeyStrategies || []).length > 0;
+        const confidenceLabel = recommendations.policy?.preferSurfaceRoute
+            ? 'Surface-first local link (bus / walk)'
+            : recommendations.trust?.differsFromTfl
+                ? 'Free Flow corrected street access (ahead of TfL labels)'
+                : recommendations.degraded
+                    ? 'Fallback guidance (no live TfL journey)'
+                    : hasLiveJourney
+                        ? 'Live TfL timing + Free Flow access gate'
+                        : 'Free Flow published-access guidance';
+
+        setJourneyActive(true);
+        latestPlanContext = { start, end, recommendations };
+        renderDegradedBanner(recommendations);
+        renderConfidenceHero(confidence);
+        renderJourneyQuickSummary(start, end, confidence, planA);
+        renderCoach(confidence);
+        renderScoredLegs(confidence.scoredSteps);
+        renderPlanCard(planAPanel, planA, 'Plan A — Free Flow recommended', confidence.scoredSteps);
+        renderPlanCard(planBPanel, planB, 'Plan B — if lifts fail');
+        renderLearningPanel(recommendations, start, end);
+
+        if (scenarioFired) {
+            const notes = [];
+            if (recommendations.policy?.preferSurfaceRoute) notes.push('surface-first');
+            else if (recommendations.trust?.differsFromTfl) notes.push('TfL corrected');
+            scenarioFired.textContent = `${startAccessibility} → ${endAccessibility}${notes.length ? ` · ${notes.join(' · ')}` : ''}`;
+        }
+        routeMeta.textContent = `${confidenceLabel} · Selected: ${planA?.title || 'Plan A'}`;
+
         const strictPolicyGuidance = [];
+        if (recommendations.policy?.preferSurfaceRoute) {
+            strictPolicyGuidance.push(`Surface-first: ${start} and ${end} are local and not street-to-train step-free — use bus or walk.`);
+        }
         if (recommendations.policy?.originRerouteRequired) {
-            strictPolicyGuidance.push(`Origin reroute required: start at ${recommendations.liveContext.originHub || 'nearest accessible hub'} before entering Tube network.`);
+            strictPolicyGuidance.push(`Origin reroute: start via ${recommendations.liveContext.originHub || 'an accessible hub'} before joining the Tube.`);
         }
         if (recommendations.policy?.destinationTransferRequired) {
-            strictPolicyGuidance.push(`Destination transfer required: leave rail at ${recommendations.liveContext.destinationHub || 'nearest accessible interchange'} and complete final leg by bus/walking.`);
+            strictPolicyGuidance.push(`Destination transfer: leave rail at ${recommendations.liveContext.destinationHub || 'an accessible interchange'} and finish by bus or walking.`);
         }
-        renderGuidanceList([...getBaseGuidance(start, end, startAccessibility, endAccessibility), ...strictPolicyGuidance, ...recommendations.assumptions]);
+
+        renderGuidanceList([
+            ...getBaseGuidance(start, end, startAccessibility, endAccessibility, recommendations.policy || {}),
+            ...strictPolicyGuidance,
+            ...confidence.why.slice(0, 3)
+        ]);
         renderStationBreakdown(recommendations.liveContext.stationBreakdown || []);
-        renderLiftStatus(recommendations.liveContext.liftStatus || {});
-        renderLiveDepartures(recommendations.liveContext.liveDepartures || []);
-        renderAssistancePanel(start, end, startAccessibility, endAccessibility);
-        renderRouteOptions(options);
-        renderRouteSteps(options[0].steps);
-        const preferredPreview = (recommendations.policy?.originRerouteRequired || recommendations.policy?.destinationTransferRequired)
-            ? 'via'
-            : getPreferredPreviewMode(options[0]);
-        renderMapPreviewControls(options[0], preferredPreview);
-        mapContainer.style.display = "block";
-        overlay.classList.add("hidden");
+        renderLiftStatus(recommendations.liveContext || {});
+        renderLiveDepartures(
+            recommendations.liveContext.liveDepartures || [],
+            Boolean(recommendations.liveContext.departuresAreLive)
+        );
+        renderAssistancePanel(start, end, confidence);
+
+        const preferredPreview = getPreferredPreviewMode(planA, recommendations.policy || {});
+        renderMapPreviewControls(planA, {
+            preferredPreview,
+            start,
+            end,
+            policy: recommendations.policy || {},
+            originHub: recommendations.liveContext?.originHub || '',
+            destinationHub: recommendations.liveContext?.destinationHub || '',
+            startAccessibility,
+            endAccessibility
+        });
+        mapContainer.style.display = 'block';
+        overlay.classList.add('hidden');
+        saveRecent(start, end);
+        buildShareText(start, end, confidence, planA, planB);
+        journeyCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        mapContainer?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } catch (error) {
         handleError(error, ErrorTypes.MAPS_INITIALIZATION);
     }
 };
 
+const setupComboboxes = () => {
+    const stations = getStationList();
+    startCombobox = new StationCombobox({
+        input: document.getElementById('start-station-input'),
+        listbox: document.getElementById('start-station-listbox'),
+        select: startStationSelect,
+        badge: document.getElementById('start-accessibility'),
+        stations,
+        getFilterMode,
+        onChange: () => {}
+    });
+    endCombobox = new StationCombobox({
+        input: document.getElementById('end-station-input'),
+        listbox: document.getElementById('end-station-listbox'),
+        select: endStationSelect,
+        badge: document.getElementById('end-accessibility'),
+        stations,
+        getFilterMode,
+        onChange: () => {}
+    });
+};
+
+const setupProfileListeners = () => {
+    writeProfileToForm(currentProfile);
+    ['profile-wheelchair', 'profile-no-escalators', 'profile-ramp', 'profile-max-walk'].forEach((id) => {
+        document.getElementById(id)?.addEventListener('change', () => {
+            persistProfileFromForm();
+        });
+    });
+};
+
 const setupEventListeners = () => {
     if (listenersInitialized) return;
-    document.getElementById("plan-route").addEventListener("click", planRoute);
-    overlay.addEventListener("click", hideOverlay);
-    overlay.addEventListener("keydown", (event) => {
+    document.getElementById('plan-route').addEventListener('click', (event) => {
+        event.preventDefault();
+        planRoute();
+    });
+    document.getElementById('reset-button').addEventListener('click', resetSelections);
+    overlay.addEventListener('click', hideOverlay);
+    overlay.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             hideOverlay();
         }
     });
-    document.getElementById("reset-button").addEventListener("click", resetSelections);
+    swapButton?.addEventListener('click', () => {
+        const start = startCombobox?.getValue() || '';
+        const end = endCombobox?.getValue() || '';
+        applyJourneyPair(end, start);
+    });
+    stepFreeFilter?.addEventListener('change', () => {
+        startCombobox?.renderOptions(document.getElementById('start-station-input').value);
+        endCombobox?.renderOptions(document.getElementById('end-station-input').value);
+    });
+    copyJourneyButton?.addEventListener('click', async () => {
+        if (!latestJourneyText) return;
+        try {
+            await navigator.clipboard.writeText(latestJourneyText);
+            copyJourneyButton.textContent = 'Copied';
+            setTimeout(() => {
+                copyJourneyButton.textContent = 'Copy plan';
+            }, 1600);
+        } catch (error) {
+            handleError(error, ErrorTypes.NETWORK);
+        }
+    });
+    copyAssistanceButton?.addEventListener('click', async () => {
+        if (!latestAssistanceText) return;
+        try {
+            await navigator.clipboard.writeText(latestAssistanceText);
+            copyAssistanceButton.textContent = 'Copied pack';
+            setTimeout(() => {
+                copyAssistanceButton.textContent = 'Copy assistance pack';
+            }, 1600);
+        } catch (error) {
+            handleError(error, ErrorTypes.NETWORK);
+        }
+    });
+    printJourneyButton?.addEventListener('click', () => window.print());
+    document.getElementById('planner-form')?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        planRoute();
+    });
+    setupProfileListeners();
     listenersInitialized = true;
 };
 
 export const fetchTFL = async () => {
     setupEventListeners();
-    loadingSpinner.style.display = "block";
+    loadingSpinner.style.display = 'block';
     try {
         await stationService.fetchStationData();
         stationService.populateDropdowns();
-        await mapService.initialize(document.getElementById("map"));
+        setupComboboxes();
+        renderExamples();
+        renderRecent();
+        await mapService.initialize(document.getElementById('map'));
     } catch (error) {
         alert(`Failed to load station data. Error: ${error.message}`);
     } finally {
-        loadingSpinner.style.display = "none";
+        loadingSpinner.style.display = 'none';
     }
 };
 
 const initializeBackToTop = () => {
-    window.onscroll = function() {
+    window.onscroll = function () {
         if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 200) {
-            backToTopButton.style.display = "block";
+            backToTopButton.style.display = 'block';
         } else {
-            backToTopButton.style.display = "none";
+            backToTopButton.style.display = 'none';
         }
     };
-    backToTopButton.addEventListener("click", function() {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+    backToTopButton.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 };
 
 const initialize = async () => {
+    if (window.__freeflowInitialized) return;
+    window.__freeflowInitialized = true;
     initializeDarkMode();
     initializeBackToTop();
-    if (journeyQuickSummary) {
-        journeyQuickSummary.innerHTML = '<p>Choose stations to generate a simple step-by-step plan.</p>';
-    }
+    setJourneyActive(false);
     await fetchTFL();
 };
 
-document.addEventListener('DOMContentLoaded', initialize);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize);
+} else {
+    initialize();
+}

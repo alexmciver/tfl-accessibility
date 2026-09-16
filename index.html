@@ -1,88 +1,212 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Free Flow Routes is the step-free journey planner for London: search stations, compare accessible routes, and follow clear interchange guidance.">
+  <meta name="theme-color" content="#0b1f3a">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self'; font-src 'self' https://cdnjs.cloudflare.com data:; frame-src https://www.google.com https://maps.google.com https://*.google.com https://*.google.co.uk; connect-src 'self';">
-  <title>Free Flow Routes</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; script-src 'self'; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; frame-src https://www.google.com https://maps.google.com https://*.google.com https://*.google.co.uk; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://api.tfl.gov.uk;">
+  <title>Free Flow Routes | Best step-free journeys in London</title>
+  <link rel="icon" href="assets/images/favicon.ico" sizes="any">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to content</a>
   <header>
     <div class="header-content">
-      <img class="logo" src="assets/images/freeflowroutes-logo.png" alt="Free Flow Routes Logo" />
-      <nav class="main-nav">
+      <a class="brand" href="index.html" aria-label="Free Flow Routes home">
+        <img class="logo" src="assets/images/freeflowroutes-logo.png" width="48" height="48" alt="">
+        <span class="brand-text">
+          <span class="brand-name">Free Flow Routes</span>
+          <span class="brand-tag">Step-free London journeys</span>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="Primary">
         <ul>
-          <li><a href="index.html" class="active">Journey Planner</a></li>
+          <li><a href="index.html" class="active" aria-current="page">Journey Planner</a></li>
           <li><a href="accessibility.html">Accessibility Guide</a></li>
         </ul>
       </nav>
-      <label class="switch">
-        <input type="checkbox" id="dark-mode-toggle" aria-label="Toggle dark mode" />
-        <span class="slider">
-          <i class="fas fa-sun" id="sun-icon" style="display: none;"></i>
-          <i class="fas fa-moon" id="moon-icon"></i>
-        </span>
-      </label>
+      <div class="header-tools">
+        <label class="switch">
+          <input type="checkbox" id="dark-mode-toggle" aria-label="Toggle dark mode">
+          <span class="slider">
+            <i class="fas fa-sun" id="sun-icon" style="display: none;" aria-hidden="true"></i>
+            <i class="fas fa-moon" id="moon-icon" aria-hidden="true"></i>
+          </span>
+        </label>
+      </div>
     </div>
   </header>
+
   <main id="main-content">
-  <section class="planner-card">
-    <h1>Accessible Journey Planner</h1>
-    <p class="planner-intro">Plan your journey in three simple steps: choose stations, review accessibility, then follow the safest route.</p>
-    <ol class="quick-steps" aria-label="Journey planning steps">
-      <li><strong>Choose</strong> your start and end stations.</li>
-      <li><strong>Review</strong> the access level and transfer requirements.</li>
-      <li><strong>Follow</strong> the recommended route and map preview.</li>
-    </ol>
+    <section class="hero" aria-labelledby="hero-heading">
+      <p class="hero-kicker" id="hero-heading">Free Flow Routes</p>
+      <p class="hero-lead">Not just a step-free route — Free Flow cross-checks published station access, corrects TfL street-access gaps, and keeps Plan B ready if lifts fail.</p>
+      <div class="hero-trust" aria-label="What this planner provides">
+        <span class="trust-chip">Published access as hard gate</span>
+        <span class="trust-chip">Corrects TfL street-access gaps</span>
+        <span class="trust-chip">Plan B when lifts fail</span>
+      </div>
+    </section>
 
-    <label for="start-station">Start station</label>
-    <select id="start-station" aria-label="Select start station"></select>
-    <span id="start-accessibility" class="accessibility-pill" aria-live="polite"></span>
-    
-    <label for="end-station">End station</label>
-    <select id="end-station" aria-label="Select end station"></select>
-    <span id="end-accessibility" class="accessibility-pill" aria-live="polite"></span>
+    <section class="profile-card" aria-labelledby="profile-heading">
+      <div class="profile-card-header">
+        <h2 id="profile-heading">Your access profile</h2>
+        <p>Saved on this device — used to score confidence and shape Plan A / Plan B.</p>
+      </div>
+      <div class="profile-grid" id="access-profile">
+        <label class="profile-toggle" for="profile-wheelchair">
+          <input type="checkbox" id="profile-wheelchair">
+          <span>Wheelchair / scooter</span>
+        </label>
+        <label class="profile-toggle" for="profile-no-escalators">
+          <input type="checkbox" id="profile-no-escalators">
+          <span>Avoid escalators</span>
+        </label>
+        <label class="profile-toggle" for="profile-ramp">
+          <input type="checkbox" id="profile-ramp">
+          <span>Need boarding ramp</span>
+        </label>
+        <label class="profile-walk" for="profile-max-walk">
+          <span>Max walking</span>
+          <select id="profile-max-walk">
+            <option value="5">5 minutes</option>
+            <option value="10" selected>10 minutes</option>
+            <option value="15">15 minutes</option>
+            <option value="20">20 minutes</option>
+            <option value="30">30 minutes</option>
+          </select>
+        </label>
+      </div>
+    </section>
 
-    <div class="planner-actions">
-      <button id="plan-route" aria-label="Show route">Show route</button>
-      <button id="reset-button" aria-label="Reset selections">
-      <i class="fas fa-undo" style="margin-right: 5px;"></i> Reset route
-      </button>
-    </div>
-  </section>
+    <section class="planner-card" aria-labelledby="planner-heading">
+      <h1 id="planner-heading">Plan an accessible journey</h1>
+      <p class="planner-intro">Type a station name, review access level, then get a confidence-scored route with a contingency.</p>
 
-  <section class="journey-card" id="journey-summary" aria-live="polite">
-    <h2>Your journey plan</h2>
-    <div id="journey-quick-summary" class="journey-quick-summary"></div>
-    <p id="scenario-fired" class="scenario-fired"></p>
-    <p id="route-recommendation">Select a route to see step-free guidance, interchange notes, and alternatives.</p>
-    <p id="route-meta"></p>
-    <ul id="accessibility-guidance"></ul>
-    <div id="station-breakdown" class="station-breakdown"></div>
-    <div id="lift-status" class="lift-status"></div>
-    <div id="live-departures" class="live-departures"></div>
-    <div id="assistance-panel" class="assistance-panel"></div>
-    <div id="map-preview-controls" class="map-preview-controls"></div>
-    <div id="route-options" class="route-options"></div>
-    <div id="route-steps" class="route-steps"></div>
-  </section>
-  <div id="map-container" aria-label="Map showing the route">
-    <iframe id="map" title="Route map" frameborder="0" style="border:0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-  </div>
-  <div id="loading-spinner" style="display: none;" aria-live="assertive">Loading...</div>
-  <div id="overlay" tabindex="0" role="button" aria-label="Dismiss route selection message">
-    <div class="overlay-content">
-    <h2>Please select a route</h2>
-    <p>Choose a start and end station to view the route on the map.</p>
-    </div>
-  </div>
+      <form id="planner-form" class="planner-form" autocomplete="off">
+        <div class="station-pair">
+          <div class="station-field">
+            <label for="start-station-input">From</label>
+            <div class="station-combobox">
+              <input id="start-station-input" type="text" placeholder="Start typing a station" aria-label="Start station" autocomplete="off" spellcheck="false">
+              <ul id="start-station-listbox" class="combobox-list" hidden></ul>
+            </div>
+            <select id="start-station" class="visually-hidden" tabindex="-1" aria-hidden="true"></select>
+            <span id="start-accessibility" class="access-chip" aria-live="polite"></span>
+          </div>
+
+          <button type="button" id="swap-stations" class="swap-button" aria-label="Swap start and end stations">
+            <i class="fas fa-right-left" aria-hidden="true"></i>
+            <span>Swap</span>
+          </button>
+
+          <div class="station-field">
+            <label for="end-station-input">To</label>
+            <div class="station-combobox">
+              <input id="end-station-input" type="text" placeholder="Start typing a station" aria-label="End station" autocomplete="off" spellcheck="false">
+              <ul id="end-station-listbox" class="combobox-list" hidden></ul>
+            </div>
+            <select id="end-station" class="visually-hidden" tabindex="-1" aria-hidden="true"></select>
+            <span id="end-accessibility" class="access-chip" aria-live="polite"></span>
+          </div>
+        </div>
+
+        <div class="planner-preferences">
+          <label class="preference-toggle" for="step-free-filter">
+            <input type="checkbox" id="step-free-filter">
+            <span>Prefer step-free stations in search</span>
+          </label>
+        </div>
+
+        <div class="planner-actions">
+          <button type="button" id="plan-route">Show confidence plan</button>
+          <button type="button" id="reset-button" aria-label="Reset selections">
+            <i class="fas fa-undo" aria-hidden="true"></i> Reset
+          </button>
+        </div>
+      </form>
+
+      <div id="example-journeys" class="chip-row" aria-label="Example journeys"></div>
+      <div id="recent-journeys" class="chip-row" aria-label="Recent journeys" hidden></div>
+    </section>
+
+    <section class="journey-card is-empty" id="journey-summary" aria-live="polite">
+      <div class="journey-card-header">
+        <h2>Your confidence plan</h2>
+        <div class="journey-tools">
+          <button type="button" id="copy-journey" class="ghost-button">Copy plan</button>
+          <button type="button" id="copy-assistance" class="ghost-button">Copy assistance pack</button>
+          <button type="button" id="print-journey" class="ghost-button">Print</button>
+        </div>
+      </div>
+
+      <div id="degraded-banner" class="degraded-banner" hidden></div>
+
+      <div id="access-score" class="access-score confidence-hero" hidden></div>
+      <div id="journey-quick-summary" class="journey-quick-summary">
+        <p>Set your profile, choose two stations, and get Plan A with certainty on every leg — plus Plan B if lifts fail.</p>
+      </div>
+      <p id="scenario-fired" class="scenario-fired"></p>
+      <p id="route-recommendation" class="route-recommendation">Your guidance will appear here after you plan a route.</p>
+      <p id="route-meta" class="route-meta"></p>
+
+      <div id="coach-panel" class="coach-panel" hidden></div>
+      <div id="learning-panel" class="learning-panel" hidden></div>
+      <div id="journey-timeline" class="journey-timeline" aria-label="Journey timeline"></div>
+
+      <div class="journey-grid confidence-grid">
+        <div class="journey-main">
+          <div id="plan-a-panel" class="plan-panel plan-a"></div>
+          <div id="plan-b-panel" class="plan-panel plan-b"></div>
+          <ul id="accessibility-guidance" class="guidance-list"></ul>
+          <div id="route-options" class="route-options" hidden></div>
+          <div id="route-steps" class="route-steps" hidden></div>
+        </div>
+        <aside class="journey-side">
+          <div id="assistance-panel" class="assistance-panel"></div>
+          <div id="lift-status" class="lift-status"></div>
+          <div id="station-breakdown" class="station-breakdown"></div>
+          <div id="live-departures" class="live-departures"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="map-container" class="map-panel" aria-label="Route map">
+      <div class="map-panel-header">
+        <div>
+          <h2 class="map-panel-title">Route map</h2>
+          <p id="map-stage-caption" class="map-stage-caption">Plan a journey to see each access stage on the map.</p>
+        </div>
+        <p class="map-panel-note">Each tab shows one stage. Read the caption before following the pin route.</p>
+      </div>
+      <div id="map-legend" class="map-legend" aria-label="Stations on this map"></div>
+      <div id="map-preview-controls" class="map-preview-controls" role="tablist" aria-label="Map stages"></div>
+      <div class="map-frame-wrap">
+        <iframe id="map" title="Route map for the selected stage" style="border:0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
+    </section>
+
+    <div id="loading-spinner" style="display: none;" aria-live="assertive">Loading stations…</div>
+    <div id="overlay" class="hidden" tabindex="-1" role="presentation" aria-hidden="true"></div>
   </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p><strong>Free Flow Routes</strong> — accessibility confidence coaching for London travel.</p>
+      <p>We treat published station accessibility as the hard gate. TfL “step-free to platform” is useful for rail timing, but it is not the same as street-to-train access — Free Flow corrects those gaps with accessible hubs. Always re-check live lift status before you travel.</p>
+      <p><a href="https://tfl.gov.uk/transport-accessibility/" target="_blank" rel="noopener noreferrer">TfL accessibility portal</a></p>
+    </div>
+  </footer>
+
+  <button type="button" id="back-to-top" aria-label="Back to top">↑ Back to top</button>
   <script src="js/boot.js"></script>
-  <button id="back-to-top" aria-label="Back to top">↑ Back to Top</button>
 </body>
 </html>

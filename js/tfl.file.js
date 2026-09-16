@@ -1,4 +1,15 @@
 (function () {
+    // File-mode fallback: expose native selects when searchable combobox modules are unavailable.
+    document.querySelectorAll('.station-combobox').forEach((el) => {
+        el.hidden = true;
+    });
+    document.querySelectorAll('#start-station, #end-station').forEach((el) => {
+        el.classList.remove('visually-hidden');
+        el.removeAttribute('aria-hidden');
+        el.removeAttribute('tabindex');
+    });
+    document.querySelector('.station-pair')?.classList.add('file-mode-selects');
+
     const API_KEY = window.FREEFLOW_GOOGLE_MAPS_API_KEY || '';
     const stationsDataFallback = {
         "Abbey Road": "Full",
@@ -584,8 +595,11 @@
     const routeOptionsContainer = document.getElementById("route-options");
     const routeStepsContainer = document.getElementById("route-steps");
     const mapElement = document.getElementById("map");
+    const mapStageCaption = document.getElementById("map-stage-caption");
+    const mapLegend = document.getElementById("map-legend");
     let listenersInitialized = false;
     let currentMapUrls = { full: '', via: '', final: '' };
+    let currentMapCaptions = { full: '', via: '', final: '' };
     const escapeHtml = (value = '') => String(value)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -603,18 +617,24 @@
 
     const updateJourneyGuidance = (start, end, startAccessibility, endAccessibility) => {
         const guidance = [];
-        const lowerAccessibility = [startAccessibility, endAccessibility];
-        const hasNoStepFree = lowerAccessibility.includes('None');
-        const hasPartial = lowerAccessibility.includes('Partial');
-        const hasInterchange = lowerAccessibility.includes('Interchange');
+        const hasPartial = [startAccessibility, endAccessibility].includes('Partial');
+        const hasInterchange = [startAccessibility, endAccessibility].includes('Interchange');
 
         if (startAccessibility === 'Full' && endAccessibility === 'Partial') {
             routeRecommendation.textContent = 'Destination access is limited. Stay on rail for the main trip, then transfer for the last section.';
             guidance.push(`Do this now: travel by Tube from ${start}, then leave at an accessible interchange before ${end}.`);
             guidance.push(`Finish safely: use an accessible bus or short walk for the final approach to ${end}.`);
-        } else if (hasNoStepFree) {
-            routeRecommendation.textContent = 'One station is not step-free. This plan avoids inaccessible sections where possible.';
-            guidance.push(`Do this now: use rail to an accessible hub near ${end}, then transfer by bus or short walk.`);
+        } else if (preferSurfaceRoute(start, end, startAccessibility, endAccessibility)) {
+            routeRecommendation.textContent = 'Both stations are nearby and not street-to-train step-free. Stay on the surface — bus or walk.';
+            guidance.push(`Do this now: take a local accessible bus or walk between ${start} and ${end}. Do not enter either Tube station for a short hop.`);
+            guidance.push('Allow extra time and avoid inaccessible Tube entrances at both ends.');
+        } else if (startAccessibility === 'None' && endAccessibility === 'None') {
+            routeRecommendation.textContent = 'Origin is not step-free. Start via an accessible hub, then continue to your destination.';
+            guidance.push(`Do this now: use bus or a short walk from ${start} to an accessible hub, then travel by Tube toward ${end}.`);
+            guidance.push('Allow extra time for staff-assisted routing where required.');
+        } else if (endAccessibility === 'None') {
+            routeRecommendation.textContent = 'Destination is not step-free. Leave rail at an accessible hub, then finish by bus or walk.';
+            guidance.push(`Do this now: travel by Tube toward an accessible hub near ${end}, then transfer by bus or short walk.`);
             guidance.push('Allow extra time for staff-assisted routing where required.');
         } else if (hasPartial) {
             routeRecommendation.textContent = 'This journey has partial step-free access. Platform checks are required.';
@@ -656,26 +676,26 @@
 
     const renderJourneyQuickSummary = (start, end, startAccessibility, endAccessibility) => {
         if (!journeyQuickSummary) return;
+        const surface = preferSurfaceRoute(start, end, startAccessibility, endAccessibility);
         const needsTransfer = ['None', 'Partial'].includes(startAccessibility) || ['None', 'Partial', 'Interchange'].includes(endAccessibility);
-        const message = needsTransfer
-            ? `Route from ${start} to ${end}: travel by accessible rail to a suitable hub, then complete any constrained section by bus or walking transfer.`
-            : `Route from ${start} to ${end}: a direct step-free rail journey is available, with alternatives shown below.`;
+        const message = surface
+            ? `Route from ${start} to ${end}: both ends are not street-to-train step-free and are local — use bus or walk, not Tube.`
+            : needsTransfer
+                ? `Route from ${start} to ${end}: travel by accessible rail to a suitable hub, then complete any constrained section by bus or walking transfer.`
+                : `Route from ${start} to ${end}: a direct step-free rail journey is available, with alternatives shown below.`;
         journeyQuickSummary.innerHTML = `<p>${escapeHtml(message)}</p>`;
     };
 
     const applyMapPreview = (previewMode) => {
-        if (previewMode === 'via' && currentMapUrls.via) {
-            mapElement.src = currentMapUrls.via;
-            return;
-        }
-        if (previewMode === 'final' && currentMapUrls.final) {
-            mapElement.src = currentMapUrls.final;
-        } else if (currentMapUrls.full) {
-            mapElement.src = currentMapUrls.full;
+        const url = currentMapUrls[previewMode] || currentMapUrls.full;
+        if (url) mapElement.src = url;
+        if (mapStageCaption) {
+            mapStageCaption.textContent = currentMapCaptions[previewMode] || currentMapCaptions.full || '';
         }
     };
 
     const getPreferredPreviewMode = (option) => {
+        if (option.badge === 'Surface-first' || option.badge === 'Walk') return 'via';
         if (option.badge === 'Bus-link required' || option.badge === 'Step 2' || option.badge === 'Step 3') {
             return 'via';
         }
@@ -685,35 +705,62 @@
         return 'full';
     };
 
-    const renderMapPreviewControls = (option, preferredPreview = 'full') => {
+    const renderMapPreviewControls = (option, preferredPreview = 'full', context = {}) => {
+        const start = context.start || 'Start';
+        const end = context.end || 'End';
         mapPreviewControls.innerHTML = '';
         currentMapUrls = {
             full: option.mapUrl,
             via: option.waypointMapUrl || option.mapUrl,
             final: option.finalLegMapUrl || option.mapUrl
         };
-        const createButton = (id, label) => {
+        currentMapCaptions = {
+            full: option.badge === 'Surface-first' || option.badge === 'Walk'
+                ? `Walk/surface overview from ${start} to ${end}. Avoid Tube entrances.`
+                : `Hub overview for ${start} to ${end}. Inaccessible street starts may be left off this map on purpose.`,
+            via: option.badge === 'Surface-first' || option.badge === 'Walk'
+                ? `Surface bus/walk route between ${start} and ${end}. Do not use Tube for this short local hop.`
+                : `Step-free Tube stage for ${start} to ${end}. Read this caption before following the pins.`,
+            final: `Arrival area toward ${end}.`
+        };
+        if (mapLegend) {
+            mapLegend.innerHTML = `
+                <div class="map-legend-item map-legend-start"><strong>From: ${escapeHtml(start)}</strong><span>Origin</span></div>
+                <div class="map-legend-item map-legend-end"><strong>To: ${escapeHtml(end)}</strong><span>Destination</span></div>
+            `;
+        }
+        const stages = (option.badge === 'Surface-first' || option.badge === 'Walk')
+            ? [
+                { id: 'via', label: 'Bus / surface', hint: `${start} → ${end}` },
+                { id: 'full', label: 'Walk link', hint: 'Pedestrian path' },
+                { id: 'final', label: 'Arrival area', hint: end }
+            ]
+            : [
+                { id: 'via', label: 'Step-free Tube', hint: `${start} → ${end}` },
+                { id: 'full', label: 'Hubs only', hint: 'Accessible stations' },
+                { id: 'final', label: 'Final access', hint: end }
+            ];
+        const createButton = (stage, index) => {
             const button = document.createElement('button');
             button.type = 'button';
             button.className = 'map-preview-button';
-            button.dataset.preview = id;
-            button.textContent = label;
+            button.dataset.preview = stage.id;
+            button.innerHTML = `<span class="map-stage-index">${index + 1}</span><span class="map-stage-copy"><strong>${escapeHtml(stage.label)}</strong><em>${escapeHtml(stage.hint)}</em></span>`;
             button.addEventListener('click', () => {
                 mapPreviewControls.querySelectorAll('.map-preview-button').forEach((item) => item.classList.remove('active'));
                 button.classList.add('active');
-                applyMapPreview(id);
+                applyMapPreview(stage.id);
             });
             return button;
         };
-        const fullButton = createButton('full', 'Full journey map');
-        const viaButton = createButton('via', 'Via interchange map');
-        const finalButton = createButton('final', 'Final leg map');
-        const buttonMap = { full: fullButton, via: viaButton, final: finalButton };
-        const initialMode = buttonMap[preferredPreview] ? preferredPreview : 'full';
+        const buttonMap = {};
+        stages.forEach((stage, index) => {
+            const button = createButton(stage, index);
+            buttonMap[stage.id] = button;
+            mapPreviewControls.appendChild(button);
+        });
+        const initialMode = buttonMap[preferredPreview] ? preferredPreview : 'via';
         buttonMap[initialMode].classList.add('active');
-        mapPreviewControls.appendChild(fullButton);
-        mapPreviewControls.appendChild(viaButton);
-        mapPreviewControls.appendChild(finalButton);
         applyMapPreview(initialMode);
     };
 
@@ -822,42 +869,82 @@
         return url;
     };
 
-    const ACCESSIBLE_HUB_OVERRIDES = {
-        Aldgate: 'Liverpool Street',
-        'Aldgate East': 'Whitechapel',
-        Bank: 'London Bridge',
-        Barbican: 'Farringdon',
-        Angel: 'King’s Cross St. Pancras',
-        Waterloo: 'London Bridge',
-        Victoria: 'Green Park'
+    const localityKey = (stationName = '') => {
+        const parts = String(stationName).toLowerCase().replace(/[^a-z0-9\s]+/g, ' ').trim().split(/\s+/);
+        if (parts.length < 2) return null;
+        return parts[0] || null;
     };
 
-    const getNearestFullStation = (station) => {
-        const stationNames = Object.keys(stationsDataFallback);
-        const originIndex = stationNames.indexOf(station);
-        if (originIndex === -1) return 'London Bridge';
+    const preferSurfaceRoute = (start, end, startAccessibility, endAccessibility) => {
+        const bothBlocked = ['None', 'Partial'].includes(startAccessibility)
+            && ['None', 'Partial'].includes(endAccessibility);
+        if (!bothBlocked) return false;
+        const left = localityKey(start);
+        const right = localityKey(end);
+        return Boolean(left && right && left === right);
+    };
 
-        for (let offset = 1; offset < stationNames.length; offset += 1) {
-            const lowerIndex = originIndex - offset;
-            if (lowerIndex >= 0) {
-                const lowerName = stationNames[lowerIndex];
-                if (stationsDataFallback[lowerName] === 'Full') return lowerName;
-            }
-            const upperIndex = originIndex + offset;
-            if (upperIndex < stationNames.length) {
-                const upperName = stationNames[upperIndex];
-                if (stationsDataFallback[upperName] === 'Full') return upperName;
-            }
+    const scoreHubCandidate = (station, candidate) => {
+        if (!station || !candidate || station === candidate) return -1;
+        const normalise = (name = '') => String(name).toLowerCase().replace(/['’]/g, '').replace(/\bstation\b/g, '').replace(/[^a-z0-9\s]+/g, ' ').replace(/\s+/g, ' ').trim();
+        const tokens = (name = '') => normalise(name).split(' ').filter((part) => part.length > 1);
+        const stationTokens = tokens(station);
+        const candidateTokens = tokens(candidate);
+        if (!candidateTokens.length) return -1;
+        let score = 0;
+        const stationLocality = localityKey(station);
+        const candidateLocality = localityKey(candidate);
+        if (stationLocality && candidateLocality && stationLocality === candidateLocality) score += 100;
+        stationTokens.forEach((token) => {
+            if (candidateTokens.includes(token)) score += 24;
+        });
+        const left = normalise(station);
+        const right = normalise(candidate);
+        if (left && right) {
+            if (right.startsWith(left) || left.startsWith(right)) score += 18;
+            const shorter = left.length <= right.length ? left : right;
+            const longer = left.length <= right.length ? right : left;
+            if (shorter.length >= 4 && longer.includes(shorter)) score += 12;
         }
+        score -= Math.min(6, Math.abs(candidateTokens.length - stationTokens.length));
+        return score;
+    };
 
-        return 'London Bridge';
+    const pickBestFullHub = (station) => {
+        const names = Object.keys(stationsDataFallback);
+        const fullStations = Object.entries(stationsDataFallback)
+            .filter(([, accessibility]) => accessibility === 'Full')
+            .map(([name]) => name);
+        if (!fullStations.length) return station;
+        const originIndex = names.indexOf(station);
+        let bestSimilar = null;
+        let bestSimilarScore = -Infinity;
+        fullStations.forEach((candidate) => {
+            const score = scoreHubCandidate(station, candidate);
+            if (score > bestSimilarScore) {
+                bestSimilarScore = score;
+                bestSimilar = candidate;
+            }
+        });
+        if (bestSimilar && bestSimilarScore >= 20) return bestSimilar;
+        if (originIndex === -1) return bestSimilar || fullStations[0];
+        let bestNear = fullStations[0];
+        let bestDistance = Infinity;
+        fullStations.forEach((candidate) => {
+            const candidateIndex = names.indexOf(candidate);
+            if (candidateIndex < 0) return;
+            const distance = Math.abs(candidateIndex - originIndex);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestNear = candidate;
+            }
+        });
+        return bestNear;
     };
 
     const resolveAccessibleHub = (station, accessibility) => {
         if (accessibility === 'Full') return `${station} Station, London`;
-        const overrideHub = ACCESSIBLE_HUB_OVERRIDES[station];
-        const resolvedHub = overrideHub || getNearestFullStation(station);
-        return `${resolvedHub} Station, London`;
+        return `${pickBestFullHub(station)} Station, London`;
     };
 
     const buildRouteOptions = (start, end, startAccessibility, endAccessibility) => {
@@ -866,6 +953,43 @@
         const startAccessibleHub = resolveAccessibleHub(start, startAccessibility);
         const endAccessibleHub = resolveAccessibleHub(end, endAccessibility);
         const hasInaccessibleLeg = [startAccessibility, endAccessibility].some((value) => value === 'None' || value === 'Partial');
+
+        if (preferSurfaceRoute(start, end, startAccessibility, endAccessibility)) {
+            return [
+                {
+                    title: 'Recommended: Direct bus or walk',
+                    badge: 'Surface-first',
+                    rationale: 'Both stations lack street-to-train access and are in the same local area. Stay on the surface — do not use Tube for this short hop.',
+                    mapUrl: createMapUrl(startStation, endStation, 'transit', 'bus'),
+                    waypointMapUrl: createMapUrl(startStation, endStation, 'walking'),
+                    finalLegMapUrl: createMapUrl(startStation, endStation, 'walking'),
+                    steps: [
+                        { text: `Take a local accessible bus between ${start} and ${end} — do not enter either station for a short Tube hop.` },
+                        { text: `Or walk the short local link if it fits your access needs.` }
+                    ]
+                },
+                {
+                    title: 'Alternative: Walk-first local link',
+                    badge: 'Walk',
+                    rationale: 'Short local surface link without using inaccessible Tube stations.',
+                    mapUrl: createMapUrl(startStation, endStation, 'walking'),
+                    waypointMapUrl: createMapUrl(startStation, endStation, 'walking'),
+                    finalLegMapUrl: createMapUrl(startStation, endStation, 'walking'),
+                    steps: [{ text: `Walk from ${start} toward ${end} on the surface.` }]
+                },
+                {
+                    title: 'Backup: Only if you must use rail',
+                    badge: 'Backup',
+                    rationale: 'Contingency only via accessible hubs — not the default for this short local trip.',
+                    mapUrl: createMapUrl(startAccessibleHub, endAccessibleHub, 'transit'),
+                    finalLegMapUrl: createMapUrl(endAccessibleHub, endStation, 'walking'),
+                    steps: [
+                        { text: `Reach ${startAccessibleHub} from ${start}, then travel to ${endAccessibleHub}.` },
+                        { text: `Finish toward ${end} by bus or walking.` }
+                    ]
+                }
+            ];
+        }
 
         if (!hasInaccessibleLeg) {
             return [
@@ -959,7 +1083,7 @@
         ];
     };
 
-    const renderRouteOptions = (routeOptions) => {
+    const renderRouteOptions = (routeOptions, start, end) => {
         routeOptionsContainer.innerHTML = '';
         routeOptions.forEach((option, index) => {
             const button = document.createElement('button');
@@ -975,7 +1099,7 @@
                 });
                 button.classList.add('active');
                 const preferredPreview = getPreferredPreviewMode(option);
-                renderMapPreviewControls(option, preferredPreview);
+                renderMapPreviewControls(option, preferredPreview, { start, end });
                 mapContainer.style.display = "block";
                 renderRouteSteps(option.steps || [{ text: option.rationale }]);
                 routeMeta.textContent = `${routeMeta.textContent.split(' | ')[0]} | Selected option: ${option.title}`;
@@ -1006,7 +1130,7 @@
         routeStepsContainer.innerHTML = '';
         mapPreviewControls.innerHTML = '';
         mapContainer.style.display = "none";
-        overlay.classList.remove("hidden");
+        overlay.classList.add("hidden");
         mapService.reset();
         stationService.reset();
     };
@@ -1033,15 +1157,17 @@
             if (strictPolicyGuidance.length > 0) {
                 renderGuidanceList([...Array.from(accessibilityGuidance.querySelectorAll('li')).map((item) => item.textContent), ...strictPolicyGuidance]);
             }
-            renderRouteOptions(routeOptions);
+            renderRouteOptions(routeOptions, start, end);
             renderStationBreakdown(start, end, startAccessibility, endAccessibility);
             renderLiftStatus(startAccessibility, endAccessibility);
             renderLiveDepartures();
             renderAssistancePanel(start, end, startAccessibility, endAccessibility);
-            const preferredPreview = (['None', 'Partial'].includes(startAccessibility) || ['None', 'Partial', 'Interchange'].includes(endAccessibility))
+            const preferredPreview = preferSurfaceRoute(start, end, startAccessibility, endAccessibility)
+                || ['None', 'Partial'].includes(startAccessibility)
+                || ['None', 'Partial', 'Interchange'].includes(endAccessibility)
                 ? 'via'
                 : getPreferredPreviewMode(routeOptions[0]);
-            renderMapPreviewControls(routeOptions[0], preferredPreview);
+            renderMapPreviewControls(routeOptions[0], preferredPreview, { start, end });
             renderRouteSteps(routeOptions[0].steps || [{ text: routeOptions[0].rationale }]);
             mapContainer.style.display = "block";
             overlay.classList.add("hidden");
@@ -1052,7 +1178,10 @@
 
     const setupEventListeners = () => {
         if (listenersInitialized) return;
-        document.getElementById("plan-route").addEventListener("click", planRoute);
+        document.getElementById("plan-route").addEventListener("click", (event) => {
+            event.preventDefault();
+            planRoute();
+        });
         overlay.addEventListener("click", hideOverlay);
         overlay.addEventListener("keydown", (event) => {
             if (event.key === 'Enter' || event.key === ' ') {
@@ -1061,6 +1190,10 @@
             }
         });
         document.getElementById("reset-button").addEventListener("click", resetSelections);
+        document.getElementById("planner-form")?.addEventListener("submit", (event) => {
+            event.preventDefault();
+            planRoute();
+        });
         listenersInitialized = true;
     };
 

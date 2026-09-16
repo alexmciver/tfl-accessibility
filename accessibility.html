@@ -1,111 +1,130 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self'; font-src 'self' https://cdnjs.cloudflare.com data:; frame-src https://www.google.com https://maps.google.com https://*.google.com https://*.google.co.uk; connect-src 'self';">
-    <title>Free Flow Routes - Accessibility Guide</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Understand TfL station accessibility symbols used by Free Flow Routes: full, interchange, partial, and no step-free access.">
+  <meta name="theme-color" content="#0b1f3a">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; script-src 'self'; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; frame-src https://www.google.com https://maps.google.com https://*.google.com https://*.google.co.uk; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://api.tfl.gov.uk;">
+  <title>Accessibility Guide | Free Flow Routes</title>
+  <link rel="icon" href="assets/images/favicon.ico" sizes="any">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Skip to content</a>
-    <header>
-        <div class="header-content">
-            <img class="logo" src="assets/images/freeflowroutes-logo.png" alt="Free Flow Routes Logo" />
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="index.html">Journey Planner</a></li>
-                    <li><a href="accessibility.html" class="active">Accessibility Guide</a></li>
-                </ul>
-            </nav>
-            <label class="switch">
-                <input type="checkbox" id="dark-mode-toggle" aria-label="Toggle dark mode" />
-                <span class="slider">
-                    <i class="fas fa-sun" id="sun-icon" style="display: none;"></i>
-                    <i class="fas fa-moon" id="moon-icon"></i>
-                </span>
-            </label>
-        </div>
-    </header>
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <header>
+    <div class="header-content">
+      <a class="brand" href="index.html" aria-label="Free Flow Routes home">
+        <img class="logo" src="assets/images/freeflowroutes-logo.png" width="48" height="48" alt="">
+        <span class="brand-text">
+          <span class="brand-name">Free Flow Routes</span>
+          <span class="brand-tag">Step-free London journeys</span>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="Primary">
+        <ul>
+          <li><a href="index.html">Journey Planner</a></li>
+          <li><a href="accessibility.html" class="active" aria-current="page">Accessibility Guide</a></li>
+        </ul>
+      </nav>
+      <div class="header-tools">
+        <label class="switch">
+          <input type="checkbox" id="dark-mode-toggle" aria-label="Toggle dark mode">
+          <span class="slider">
+            <i class="fas fa-sun" id="sun-icon" style="display: none;" aria-hidden="true"></i>
+            <i class="fas fa-moon" id="moon-icon" aria-hidden="true"></i>
+          </span>
+        </label>
+      </div>
+    </div>
+  </header>
 
-    <main id="main-content" class="accessibility-guide">
-        <h1>TfL Station Accessibility Guide</h1>
-        
-        <section class="accessibility-levels">
-            <h2>Understanding Accessibility Symbols</h2>
-            
-            <div class="accessibility-type">
-                <h3><span class="symbol">♿</span> Full Step-Free Access</h3>
-                <p>These stations have complete step-free access from street to platform. This means:</p>
-                <ul>
-                    <li>Level access from street to ticket hall</li>
-                    <li>Lifts or ramps to all platforms</li>
-                    <li>Suitable for wheelchair users</li>
-                    <li>No steps or gaps to navigate</li>
-                </ul>
-            </div>
+  <main id="main-content" class="accessibility-guide">
+    <h1>Station accessibility guide</h1>
+    <p class="hero-lead">Use these symbols to understand what each station access level means when you plan a journey.</p>
 
-            <div class="accessibility-type">
-                <h3><span class="symbol">↔️</span> Interchange Access</h3>
-                <p>These stations have step-free access between platforms, but may have steps from street level:</p>
-                <ul>
-                    <li>Easy transfers between lines</li>
-                    <li>Level access between platforms</li>
-                    <li>May require staff assistance</li>
-                    <li>May have steps at station entrance</li>
-                </ul>
-            </div>
+    <section class="accessibility-levels" aria-labelledby="levels-heading">
+      <h2 id="levels-heading">Understanding accessibility symbols</h2>
 
-            <div class="accessibility-type">
-                <h3><span class="symbol">⚡</span> Partial Step-Free Access</h3>
-                <p>These stations have some step-free access, but not to all platforms or areas:</p>
-                <ul>
-                    <li>Some platforms are step-free</li>
-                    <li>Some routes may require steps</li>
-                    <li>Check TfL website for specific platform information</li>
-                    <li>May need to plan route carefully</li>
-                </ul>
-            </div>
+      <div class="accessibility-type">
+        <h3><span class="symbol" aria-hidden="true">♿</span> Full step-free access</h3>
+        <p>Complete step-free access from street to platform:</p>
+        <ul>
+          <li>Level access from street to ticket hall</li>
+          <li>Lifts or ramps to all platforms</li>
+          <li>Suitable for wheelchair users</li>
+          <li>No steps required for the main route</li>
+        </ul>
+      </div>
 
-            <div class="accessibility-type">
-                <h3><span class="symbol">⚠️</span> No Step-Free Access</h3>
-                <p>These stations do not have step-free access and may present challenges:</p>
-                <ul>
-                    <li>Steps between street and platforms</li>
-                    <li>No lift access available</li>
-                    <li>Not suitable for wheelchair users</li>
-                    <li>Staff assistance may be limited</li>
-                </ul>
-            </div>
-        </section>
+      <div class="accessibility-type">
+        <h3><span class="symbol" aria-hidden="true">↔️</span> Interchange access</h3>
+        <p>Step-free access between platforms, but street access may still involve steps:</p>
+        <ul>
+          <li>Easier transfers between lines</li>
+          <li>Level access between platforms</li>
+          <li>Staff assistance may still help</li>
+          <li>Entrance routes can include steps</li>
+        </ul>
+      </div>
 
-        <section class="additional-info">
-            <h2>Additional Information</h2>
-            <ul>
-                <li>Always check TfL's live updates for lift availability</li>
-                <li>Staff assistance is available at all stations</li>
-                <li>Some stations may require advance notice for ramp assistance</li>
-                <li>Platform gap fillers are available at many stations</li>
-            </ul>
-        </section>
+      <div class="accessibility-type">
+        <h3><span class="symbol" aria-hidden="true">⚡</span> Partial step-free access</h3>
+        <p>Some step-free access, but not to every platform or exit:</p>
+        <ul>
+          <li>Some platforms are step-free</li>
+          <li>Some routes may still require steps</li>
+          <li>Check platform-specific details before travel</li>
+          <li>Plan an alternative if needed</li>
+        </ul>
+      </div>
 
-        <section class="useful-links">
-            <h2>Useful Links</h2>
-            <ul>
-                <li><a href="https://tfl.gov.uk/transport-accessibility/" target="_blank" rel="noopener noreferrer">TfL Accessibility Portal</a></li>
-                <li><a href="https://tfl.gov.uk/transport-accessibility/wheelchair-access-and-avoiding-stairs" target="_blank" rel="noopener noreferrer">TfL Step-Free Guide</a></li>
-                <li><a href="https://tfl.gov.uk/transport-accessibility/help-from-staff" target="_blank" rel="noopener noreferrer">Staff Assistance Information</a></li>
-            </ul>
-        </section>
-    </main>
+      <div class="accessibility-type">
+        <h3><span class="symbol" aria-hidden="true">⚠️</span> No step-free access</h3>
+        <p>These stations are likely to present barriers for step-free travel:</p>
+        <ul>
+          <li>Steps between street and platforms</li>
+          <li>No full lift access available</li>
+          <li>Not suitable as a wheelchair destination</li>
+          <li>Use an accessible hub and transfer instead</li>
+        </ul>
+      </div>
+    </section>
 
-    <footer>
-        <p>Data provided by Transport for London</p>
-    </footer>
-    
-    <button id="back-to-top" aria-label="Back to top">↑ Back to Top</button>
-    <script src="js/boot.accessibility.js"></script>
+    <section class="additional-info">
+      <h2>Before you travel</h2>
+      <ul>
+        <li>Check TfL live updates for lift availability</li>
+        <li>Staff assistance is available at stations</li>
+        <li>Some stations need advance notice for ramp help</li>
+        <li>Platform gap fillers are available at many stations</li>
+      </ul>
+    </section>
+
+    <section class="useful-links">
+      <h2>Useful links</h2>
+      <ul>
+        <li><a href="https://tfl.gov.uk/transport-accessibility/" target="_blank" rel="noopener noreferrer">TfL Accessibility Portal</a></li>
+        <li><a href="https://tfl.gov.uk/transport-accessibility/wheelchair-access-and-avoiding-stairs" target="_blank" rel="noopener noreferrer">TfL Step-Free Guide</a></li>
+        <li><a href="https://tfl.gov.uk/transport-accessibility/help-from-staff" target="_blank" rel="noopener noreferrer">Staff Assistance Information</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p><strong>Free Flow Routes</strong> — independent accessibility journey guidance for London travel.</p>
+      <p>Always re-check live lift and service status with Transport for London before you travel.</p>
+      <p><a href="index.html">Back to Journey Planner</a></p>
+    </div>
+  </footer>
+
+  <button type="button" id="back-to-top" aria-label="Back to top">↑ Back to top</button>
+  <script src="js/boot.accessibility.js"></script>
 </body>
-</html> 
+</html>
