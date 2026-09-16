@@ -22,9 +22,10 @@ const createMapUrl = (apiKey, origin, destination, mode, waypoints = []) => {
         return url;
     }
 
+    // Keyless fallback: classic embed. Prefer adding FREEFLOW_GOOGLE_MAPS_API_KEY for reliable embeds.
     const dirFlag = getDirectionFlag(mode);
     const fullDestination = [...waypoints, destination].join(' to:');
-    let url = `https://maps.google.com/maps?output=embed&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(fullDestination)}`;
+    let url = `https://maps.google.com/maps?output=embed&hl=en&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(fullDestination)}`;
     if (dirFlag) {
         url += `&dirflg=${encodeURIComponent(dirFlag)}`;
     }
@@ -33,10 +34,16 @@ const createMapUrl = (apiKey, origin, destination, mode, waypoints = []) => {
 
 const baseStep = (type, text) => ({ type, text });
 
-const hubToStationName = (hub = '') => String(hub)
-    .replace(/,\s*London$/i, '')
-    .replace(/\s+Station$/i, '')
-    .trim();
+const hubToStationName = (hub = '') => {
+    const raw = String(hub).trim();
+    if (!raw) return '';
+    // Generic offline fallback is not a TfL stop name.
+    if (/^accessible station near\b/i.test(raw)) return '';
+    return raw
+        .replace(/,\s*London$/i, '')
+        .replace(/\s+Station$/i, '')
+        .trim();
+};
 
 const wrapLiveStrategyWithAccessLegs = (strategy, {
     apiKey,
@@ -82,6 +89,11 @@ const wrapLiveStrategyWithAccessLegs = (strategy, {
     };
 };
 
+const countInterchanges = (steps = []) => {
+    const transitLegs = steps.filter((step) => step.type && step.type !== 'walk').length;
+    return Math.max(0, transitLegs - 1);
+};
+
 const buildScenarioStrategies = (apiKey, start, end, startAccessibility, endAccessibility, hubs, policy) => {
     const scenario = policy.scenario || classifyAccessibilityScenario(startAccessibility, endAccessibility);
     const startStation = `${start} Station, London`;
@@ -99,108 +111,121 @@ const buildScenarioStrategies = (apiKey, start, end, startAccessibility, endAcce
         mapUrl: createMapUrl(apiKey, effectiveOrigin, endStation, 'transit'),
         waypointMapUrl: createMapUrl(apiKey, effectiveOrigin, endStation, 'transit', [destinationHub]),
         finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'transit'),
-        steps: [baseStep('tube', `Travel from ${effectiveOrigin} toward ${end}.`)]
+        steps: [baseStep('tube', `Travel from ${effectiveOrigin} toward ${end}.`)],
+        interchangeCount: 0
     };
 
     // Local None/Partial pairs (e.g. Clapham Common → Clapham High Street): stay on the surface.
     if (policy.preferSurfaceRoute) {
+        const surfaceDirect = {
+            id: 'surface-direct',
+            title: 'Direct bus or walk',
+            badge: 'Surface-first',
+            freeflowVerified: true,
+            surfaceRoute: true,
+            rationale: 'Both stations lack street-to-train access and are in the same local area. A Tube hop via hubs would be longer and still force inaccessible street access — stay on bus or walk.',
+            mapUrl: createMapUrl(apiKey, startStation, endStation, 'transit'),
+            waypointMapUrl: createMapUrl(apiKey, startStation, endStation, 'walking'),
+            finalLegMapUrl: createMapUrl(apiKey, startStation, endStation, 'walking'),
+            steps: [
+                baseStep('bus', `Take a local accessible bus between ${start} and ${end} — do not enter either station for a short Tube hop.`),
+                baseStep('walk', `Or walk the short local link if it fits your access profile and max walk time.`)
+            ]
+        };
+        surfaceDirect.interchangeCount = countInterchanges(surfaceDirect.steps);
+        const surfaceWalk = {
+            id: 'surface-walk',
+            title: 'Walk-first local link',
+            badge: 'Walk',
+            freeflowVerified: true,
+            surfaceRoute: true,
+            rationale: 'Short local surface link without using inaccessible Tube stations.',
+            mapUrl: createMapUrl(apiKey, startStation, endStation, 'walking'),
+            waypointMapUrl: createMapUrl(apiKey, startStation, endStation, 'walking'),
+            finalLegMapUrl: createMapUrl(apiKey, startStation, endStation, 'walking'),
+            steps: [
+                baseStep('walk', `Walk from ${start} toward ${end} on the surface. Avoid Tube entrances at both ends.`)
+            ],
+            interchangeCount: 0
+        };
+        const hubBackup = {
+            id: 'hub-backup',
+            title: 'Only if you must use rail',
+            badge: 'Backup',
+            freeflowVerified: true,
+            rationale: 'Contingency only: if you need rail, reach nearby accessible hubs — not a good default for this short local trip.',
+            mapUrl: createMapUrl(apiKey, originHub, destinationHub, 'transit'),
+            waypointMapUrl: createMapUrl(apiKey, originHub, destinationHub, 'transit'),
+            finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'walking'),
+            steps: [
+                baseStep('bus', `Reach ${originHub} from ${start} using an accessible transfer.`),
+                baseStep('tube', `Travel to ${destinationHub} by Tube.`),
+                baseStep('walk', `Complete final transfer to ${end}.`)
+            ]
+        };
+        hubBackup.interchangeCount = countInterchanges(hubBackup.steps);
         return {
             scenario,
             policy,
-            strategies: [{
-                id: 'surface-direct',
-                title: 'Direct bus or walk',
-                badge: 'Surface-first',
-                freeflowVerified: true,
-                surfaceRoute: true,
-                rationale: 'Both stations lack street-to-train access and are in the same local area. A Tube hop via hubs would be longer and still force inaccessible street access — stay on bus or walk.',
-                mapUrl: createMapUrl(apiKey, startStation, endStation, 'transit'),
-                waypointMapUrl: createMapUrl(apiKey, startStation, endStation, 'walking'),
-                finalLegMapUrl: createMapUrl(apiKey, startStation, endStation, 'walking'),
-                steps: [
-                    baseStep('bus', `Take a local accessible bus between ${start} and ${end} — do not enter either station for a short Tube hop.`),
-                    baseStep('walk', `Or walk the short local link if it fits your access profile and max walk time.`)
-                ]
-            }, {
-                id: 'surface-walk',
-                title: 'Walk-first local link',
-                badge: 'Walk',
-                freeflowVerified: true,
-                surfaceRoute: true,
-                rationale: 'Short local surface link without using inaccessible Tube stations.',
-                mapUrl: createMapUrl(apiKey, startStation, endStation, 'walking'),
-                waypointMapUrl: createMapUrl(apiKey, startStation, endStation, 'walking'),
-                finalLegMapUrl: createMapUrl(apiKey, startStation, endStation, 'walking'),
-                steps: [
-                    baseStep('walk', `Walk from ${start} toward ${end} on the surface. Avoid Tube entrances at both ends.`)
-                ]
-            }, {
-                id: 'hub-backup',
-                title: 'Only if you must use rail',
-                badge: 'Backup',
-                freeflowVerified: true,
-                rationale: 'Contingency only: if you need rail, reach nearby accessible hubs — not a good default for this short local trip.',
-                mapUrl: createMapUrl(apiKey, originHub, destinationHub, 'transit'),
-                waypointMapUrl: createMapUrl(apiKey, originHub, destinationHub, 'transit'),
-                finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'walking'),
-                steps: [
-                    baseStep('bus', `Reach ${originHub} from ${start} using an accessible transfer.`),
-                    baseStep('tube', `Travel to ${destinationHub} by Tube.`),
-                    baseStep('walk', `Complete final transfer to ${end}.`)
-                ]
-            }]
+            strategies: [surfaceDirect, surfaceWalk, hubBackup]
         };
     }
 
     if (startAccessibility === 'Full' && endAccessibility === 'Full') {
+        const busBackup = {
+            id: 'bus-backup',
+            title: 'Bus fallback route',
+            badge: 'Backup',
+            freeflowVerified: true,
+            rationale: 'Use this if lifts fail or disruption affects rail access.',
+            mapUrl: createMapUrl(apiKey, startStation, endStation, 'transit', [destinationHub]),
+            waypointMapUrl: createMapUrl(apiKey, startStation, endStation, 'transit', [originHub, destinationHub]),
+            finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'transit'),
+            steps: [baseStep('bus', `Switch to bus near ${destinationHub} if needed.`)],
+            interchangeCount: 0
+        };
         return {
             scenario,
             policy,
-            strategies: [baseTube, {
-                id: 'bus-backup',
-                title: 'Bus fallback route',
-                badge: 'Backup',
-                freeflowVerified: true,
-                rationale: 'Use this if lifts fail or disruption affects rail access.',
-                mapUrl: createMapUrl(apiKey, startStation, endStation, 'transit', [destinationHub]),
-                waypointMapUrl: createMapUrl(apiKey, startStation, endStation, 'transit', [originHub, destinationHub]),
-                finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'transit'),
-                steps: [baseStep('bus', `Switch to bus near ${destinationHub} if needed.`)]
-            }]
+            strategies: [baseTube, busBackup]
         };
     }
 
     if (startAccessibility === 'Full' && endAccessibility === 'Partial' && !policy.originRerouteRequired) {
+        const partialMain = {
+            id: 'partial-destination-transfer',
+            title: 'Accessible interchange then final transfer',
+            badge: 'Partial destination',
+            freeflowVerified: true,
+            rationale: 'Stay on Tube, then transfer at an accessible interchange for final approach.',
+            mapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
+            waypointMapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
+            finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'walking'),
+            steps: [
+                baseStep('tube', `Take Tube from ${start} to ${destinationHub}.`),
+                baseStep('bus', `Complete final access to ${end} by accessible bus/walk if platform access is constrained.`)
+            ]
+        };
+        partialMain.interchangeCount = countInterchanges(partialMain.steps);
+        const partialAlt = {
+            id: 'partial-destination-bus-first-final',
+            title: 'Early bus switch for predictable final access',
+            badge: 'Alternative',
+            freeflowVerified: true,
+            rationale: 'Switch to bus before destination to avoid uncertain platform constraints.',
+            mapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
+            waypointMapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
+            finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'walking'),
+            steps: [
+                baseStep('tube', `Travel by Tube from ${start} to ${destinationHub}.`),
+                baseStep('bus', `Use bus/walk for final approach into ${end}.`)
+            ]
+        };
+        partialAlt.interchangeCount = countInterchanges(partialAlt.steps);
         return {
             scenario,
             policy,
-            strategies: [{
-                id: 'partial-destination-transfer',
-                title: 'Accessible interchange then final transfer',
-                badge: 'Partial destination',
-                freeflowVerified: true,
-                rationale: 'Stay on Tube, then transfer at an accessible interchange for final approach.',
-                mapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
-                waypointMapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
-                finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'walking'),
-                steps: [
-                    baseStep('tube', `Take Tube from ${start} to ${destinationHub}.`),
-                    baseStep('bus', `Complete final access to ${end} by accessible bus/walk if platform access is constrained.`)
-                ]
-            }, {
-                id: 'partial-destination-bus-first-final',
-                title: 'Early bus switch for predictable final access',
-                badge: 'Alternative',
-                freeflowVerified: true,
-                rationale: 'Switch to bus before destination to avoid uncertain platform constraints.',
-                mapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
-                waypointMapUrl: createMapUrl(apiKey, startStation, destinationHub, 'transit'),
-                finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'walking'),
-                steps: [
-                    baseStep('tube', `Travel by Tube from ${start} to ${destinationHub}.`),
-                    baseStep('bus', `Use bus/walk for final approach into ${end}.`)
-                ]
-            }]
+            strategies: [partialMain, partialAlt]
         };
     }
 
@@ -209,42 +234,47 @@ const buildScenarioStrategies = (apiKey, start, end, startAccessibility, endAcce
         || ['None', 'Partial', 'Interchange'].includes(endAccessibility);
 
     if (constrained) {
+        const firstStep = policy.originRerouteRequired
+            ? baseStep('bus', `Start with bus/walk transfer from ${start} to accessible hub ${originHub}.`)
+            : baseStep('tube', `Begin from ${effectiveOrigin}.`);
+        const accessHub = {
+            id: 'access-hub',
+            title: 'Accessible hub transfer',
+            badge: 'Free Flow verified',
+            freeflowVerified: true,
+            rationale: 'Access-first plan: published station categories force hubs where TfL street access can be wrong.',
+            mapUrl: createMapUrl(apiKey, originHub, destinationHub, 'transit'),
+            waypointMapUrl: createMapUrl(apiKey, effectiveOrigin, destinationHub, 'transit', [originHub]),
+            finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, policy.destinationTransferRequired ? 'walking' : 'transit'),
+            steps: [
+                firstStep,
+                baseStep('tube', `Travel by Tube from ${originHub} to accessible interchange ${destinationHub}.`),
+                baseStep('walk', policy.destinationTransferRequired
+                    ? `Use bus/walking transfer for final constrained segment to ${end}.`
+                    : `Continue directly to ${end}.`)
+            ]
+        };
+        accessHub.interchangeCount = countInterchanges(accessHub.steps);
+        const hubBackup = {
+            id: 'hub-backup',
+            title: 'Conservative fallback via accessible hubs',
+            badge: 'Backup',
+            freeflowVerified: true,
+            rationale: 'Maximises accessibility certainty over speed when lifts or street access fail.',
+            mapUrl: createMapUrl(apiKey, originHub, destinationHub, 'transit'),
+            waypointMapUrl: createMapUrl(apiKey, originHub, destinationHub, 'transit'),
+            finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'walking'),
+            steps: [
+                baseStep('bus', `Reach ${originHub} from ${start} using an accessible transfer.`),
+                baseStep('tube', `Travel to ${destinationHub} by Tube.`),
+                baseStep('walk', `Complete final transfer to ${end}.`)
+            ]
+        };
+        hubBackup.interchangeCount = countInterchanges(hubBackup.steps);
         return {
             scenario,
             policy,
-            strategies: [{
-                id: 'access-hub',
-                title: 'Accessible hub transfer',
-                badge: 'Free Flow verified',
-                freeflowVerified: true,
-                rationale: 'Access-first plan: published station categories force hubs where TfL street access can be wrong.',
-                mapUrl: createMapUrl(apiKey, originHub, destinationHub, 'transit'),
-                waypointMapUrl: createMapUrl(apiKey, effectiveOrigin, destinationHub, 'transit', [originHub]),
-                finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, policy.destinationTransferRequired ? 'walking' : 'transit'),
-                steps: [
-                    baseStep('bus', policy.originRerouteRequired
-                        ? `Start with bus/walk transfer from ${start} to accessible hub ${originHub}.`
-                        : `Begin from ${effectiveOrigin}.`),
-                    baseStep('tube', `Travel by Tube from ${originHub} to accessible interchange ${destinationHub}.`),
-                    baseStep('walk', policy.destinationTransferRequired
-                        ? `Use bus/walking transfer for final constrained segment to ${end}.`
-                        : `Continue directly to ${end}.`)
-                ]
-            }, {
-                id: 'hub-backup',
-                title: 'Conservative fallback via accessible hubs',
-                badge: 'Backup',
-                freeflowVerified: true,
-                rationale: 'Maximises accessibility certainty over speed when lifts or street access fail.',
-                mapUrl: createMapUrl(apiKey, originHub, destinationHub, 'transit'),
-                waypointMapUrl: createMapUrl(apiKey, originHub, destinationHub, 'transit'),
-                finalLegMapUrl: createMapUrl(apiKey, destinationHub, endStation, 'walking'),
-                steps: [
-                    baseStep('bus', `Reach ${originHub} from ${start} using an accessible transfer.`),
-                    baseStep('tube', `Travel to ${destinationHub} by Tube.`),
-                    baseStep('walk', `Complete final transfer to ${end}.`)
-                ]
-            }]
+            strategies: [accessHub, hubBackup]
         };
     }
 
@@ -276,8 +306,11 @@ const scoreStrategy = (strategy, startAccessibility, endAccessibility, disrupted
         ? 1
         : 0;
     const fewChangesBonus = profile.wheelchair && (strategy.interchangeCount || 0) <= 1 ? 1 : 0;
+    const noEscalatorBonus = profile.noEscalators && (strategy.surfaceRoute || String(strategy.id).includes('surface'))
+        ? 3
+        : (profile.noEscalators && (strategy.steps || []).every((step) => step.type !== 'tube') ? 2 : 0);
     return accessScore + verifiedBonus + hubBonus + surfaceBonus + liveBonus + accessFirstHubBonus + durationBonus
-        + fewChangesBonus - railPenalty - interchangePenalty - walkPenalty;
+        + fewChangesBonus + noEscalatorBonus - railPenalty - interchangePenalty - walkPenalty;
 };
 
 export const buildDynamicRecommendations = async ({
@@ -316,12 +349,10 @@ export const buildDynamicRecommendations = async ({
     // Skip TfL rail journeys for local surface pairs — they often suggest inaccessible Tube hops.
     if (isTflLiveEnabled() && !policy.preferSurfaceRoute) {
         try {
-            const fromStation = policy.originRerouteRequired
-                ? (hubToStationName(liveContext.originHub) || start)
-                : start;
-            const toStation = policy.destinationTransferRequired
-                ? (hubToStationName(liveContext.destinationHub) || end)
-                : end;
+            const fromHub = hubToStationName(liveContext.originHub);
+            const toHub = hubToStationName(liveContext.destinationHub);
+            const fromStation = policy.originRerouteRequired && fromHub ? fromHub : start;
+            const toStation = policy.destinationTransferRequired && toHub ? toHub : end;
             usedHubQuery = fromStation !== start || toStation !== end;
 
             const liveStrategies = await fetchStepFreeJourneyStrategies({

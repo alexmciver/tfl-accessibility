@@ -23,7 +23,7 @@ const decodeMap = (url = '') => {
     }
 };
 
-const expectsOriginReroute = (startCategory) => ['None', 'Partial'].includes(startCategory);
+const expectsOriginReroute = (startCategory) => ['None', 'Partial', 'Interchange'].includes(startCategory);
 const expectsDestinationTransfer = (endCategory) => ['None', 'Partial', 'Interchange'].includes(endCategory);
 
 const failures = [];

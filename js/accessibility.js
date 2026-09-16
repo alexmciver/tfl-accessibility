@@ -7,13 +7,14 @@ const initializeBackToTop = () => {
         return;
     }
 
-    window.onscroll = function() {
+    const onScroll = () => {
         if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 200) {
             backToTopButton.style.display = "block";
         } else {
             backToTopButton.style.display = "none";
         }
     };
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     backToTopButton.addEventListener("click", function() {
         window.scrollTo({

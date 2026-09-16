@@ -5,16 +5,26 @@ import { buildDynamicRecommendations } from '../modules/routingEngine.js';
 import {
     clearRouteMemory,
     learnFromFeedback,
+    learnHubOverride,
     isLearnedSurfacePair,
+    getLearnedHub,
     pairKey
 } from '../modules/routeLearning.js';
 
 clearRouteMemory();
 
 assert.equal(shareLocality('Clapham Common', 'Clapham High Street'), true);
+assert.equal(shareLocality('East Acton', 'East Finchley'), false);
+assert.equal(shareLocality('West Ham', 'West Ruislip'), false);
+assert.equal(shareLocality('High Barnet', 'High Street Kensington'), false);
+assert.equal(shareLocality('New Cross', 'New Cross Gate'), true);
 assert.equal(
     shouldPreferSurfaceRoute('Clapham Common', 'Clapham High Street', 'None', 'None'),
     true
+);
+assert.equal(
+    shouldPreferSurfaceRoute('East Acton', 'East Finchley', 'None', 'None'),
+    false
 );
 
 const policy = resolveAccessPolicy('None', 'None', {}, {
@@ -46,6 +56,19 @@ assert.match(decodeURIComponent(result.recommended.mapUrl), /Clapham Common/);
 assert.match(decodeURIComponent(result.recommended.mapUrl), /Clapham High Street/);
 assert.ok(isLearnedSurfacePair('Clapham Common', 'Clapham High Street'));
 
+// Distant false-positive must not surface-first or auto-learn.
+clearRouteMemory();
+const distant = await buildDynamicRecommendations({
+    apiKey: '',
+    start: 'East Acton',
+    end: 'East Finchley',
+    startAccessibility: 'None',
+    endAccessibility: 'None',
+    profile: {}
+});
+assert.equal(distant.policy.preferSurfaceRoute, false);
+assert.equal(isLearnedSurfacePair('East Acton', 'East Finchley'), false);
+
 // Feedback can teach a non-local pair.
 clearRouteMemory();
 learnFromFeedback({
@@ -61,5 +84,18 @@ const learnedPolicy = resolveAccessPolicy('None', 'Partial', {}, {
     end: 'Bank'
 });
 assert.equal(learnedPolicy.preferSurfaceRoute, true);
+
+// Wrong-hub feedback demotes hubs instead of reinforcing them.
+clearRouteMemory();
+learnHubOverride('Aldgate', 'Tower Hill Station, London', { weight: 2, source: 'auto' });
+assert.equal(getLearnedHub('Aldgate'), 'Tower Hill');
+learnFromFeedback({
+    start: 'Aldgate',
+    end: 'Bank',
+    feedback: 'wrong-hub',
+    liveContext: { originHub: 'Tower Hill Station, London' }
+});
+assert.equal(isLearnedSurfacePair('Aldgate', 'Bank'), true);
+assert.equal(getLearnedHub('Aldgate'), null);
 
 console.log('surface learning tests passed');

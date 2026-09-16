@@ -84,7 +84,7 @@ To avoid exposing secrets, no API key is stored in source code.
 
 ## TfL Live Data Behaviour
 
-Optional TfL Unified API key (register at https://api.tfl.gov.uk/):
+On hosted `http`/`https`, the planner calls the TfL Unified API for lift disruptions and step-free journey options. An app key is optional (higher rate limits) — register at https://api.tfl.gov.uk/:
 
 ```html
 <script src="js/runtime-keys.js"></script>
@@ -94,9 +94,8 @@ Optional TfL Unified API key (register at https://api.tfl.gov.uk/):
 </script>
 ```
 
-- With a key (hosted `http`/`https` only), the planner fetches lift disruptions and step-free journey options.
 - The **Are the lifts working?** panel shows Working / Disruption / Unavailable using live TfL lift data.
-- Without a key, or on fetch failure / `file://`, the app keeps deterministic hub guidance, marks results as degraded, and clearly says live lift status is unavailable.
+- On fetch failure or `file://`, the app keeps deterministic hub guidance, marks results as degraded, and clearly says live lift status is unavailable.
 - Live TfL calls are not used by `js/tfl.file.js`.
 
 ## Security Notes

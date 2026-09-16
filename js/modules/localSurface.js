@@ -14,19 +14,45 @@ const NORMALISE = (name = '') => String(name)
     .replace(/\s+/g, ' ')
     .trim();
 
+/** Compass / generic prefixes that alone do not prove two stations are nearby. */
+const GENERIC_LOCALITY = new Set([
+    'east', 'west', 'north', 'south', 'high', 'new', 'old', 'lower', 'upper',
+    'royal', 'wood', 'park', 'road', 'street', 'green', 'hill', 'cross',
+    'queens', 'kings', 'manor', 'gate', 'town', 'common'
+]);
+
+const SKIP_TOKENS = new Set(['the', 'st', 'saint', 'and', 'for', 'of']);
+
+const significantTokens = (stationName = '') => NORMALISE(stationName)
+    .split(' ')
+    .filter((part) => part.length > 1 && !SKIP_TOKENS.has(part));
+
 /** First significant locality token for multi-word station names. */
 export const localityKey = (stationName = '') => {
-    const parts = NORMALISE(stationName).split(' ').filter(Boolean);
-    if (parts.length < 2) return null;
-    const skip = new Set(['the', 'st', 'saint']);
-    const first = parts.find((part) => !skip.has(part));
-    return first || null;
+    const parts = significantTokens(stationName);
+    if (parts.length < 1) return null;
+    // Single-word stations have no multi-part locality cue.
+    if (NORMALISE(stationName).split(' ').filter(Boolean).length < 2) return null;
+    return parts[0] || null;
 };
 
+/**
+ * True only when names share a meaningful locality cue — not merely
+ * “East …” / “West …” / “South …” compass prefixes.
+ */
 export const shareLocality = (start, end) => {
-    const left = localityKey(start);
-    const right = localityKey(end);
-    return Boolean(left && right && left === right);
+    const leftTokens = significantTokens(start);
+    const rightTokens = significantTokens(end);
+    if (!leftTokens.length || !rightTokens.length) return false;
+
+    const shared = leftTokens.filter((token) => rightTokens.includes(token));
+    if (!shared.length) return false;
+
+    // Two or more shared tokens (e.g. New Cross → New Cross Gate).
+    if (shared.length >= 2) return true;
+
+    // A single shared token is enough only when it is not a generic prefix.
+    return !GENERIC_LOCALITY.has(shared[0]);
 };
 
 /**

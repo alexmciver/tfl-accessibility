@@ -20,7 +20,7 @@ export class MapService {
                 + `&origin=${encodeURIComponent(origin)}`
                 + `&destination=${encodeURIComponent(destination)}`
                 + `&mode=transit&zoom=12`
-            : `https://maps.google.com/maps?output=embed&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(destination)}&dirflg=r`;
+            : `https://maps.google.com/maps?output=embed&hl=en&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(destination)}&dirflg=r`;
 
         this.mapElement.src = mapUrl;
     }

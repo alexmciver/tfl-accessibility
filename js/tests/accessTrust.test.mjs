@@ -10,7 +10,8 @@ assert.equal(policyNoneFull.destinationTransferRequired, false);
 assert.equal(policyNoneFull.accessFirst, true);
 
 const policyInterchangeDefault = resolveAccessPolicy('Interchange', 'Full');
-assert.equal(policyInterchangeDefault.originRerouteRequired, false);
+assert.equal(policyInterchangeDefault.originRerouteRequired, true);
+assert.equal(policyInterchangeDefault.accessFirst, true);
 
 const policyInterchangeWheelchair = resolveAccessPolicy('Interchange', 'Full', { wheelchair: true });
 assert.equal(policyInterchangeWheelchair.originRerouteRequired, true);
@@ -59,5 +60,16 @@ const wheelchairInterchange = await buildDynamicRecommendations({
 });
 assert.equal(wheelchairInterchange.policy.originRerouteRequired, true);
 assert.match(wheelchairInterchange.recommended.steps[0].text, /accessible hub/i);
+
+const interchangeDefault = await buildDynamicRecommendations({
+    apiKey: '',
+    start: 'Aldgate East',
+    end: 'Abbey Road',
+    startAccessibility: 'Interchange',
+    endAccessibility: 'Full',
+    profile: {}
+});
+assert.equal(interchangeDefault.policy.originRerouteRequired, true);
+assert.equal(interchangeDefault.policy.accessFirst, true);
 
 console.log('access trust tests passed');

@@ -3,6 +3,7 @@ import { stationsDataFallback } from '../data/stationsData.js';
 import {
     pickBestFullHub,
     resolveAccessibleHubStation,
+    resolveAccessibleHubLabel,
     buildExampleJourneys,
     scoreHubCandidate
 } from '../modules/hubResolver.js';
@@ -16,9 +17,8 @@ assert.equal(stationsDataFallback[claphamHub], 'Full');
 assert.ok(scoreHubCandidate('Clapham Common', 'Clapham Junction') > scoreHubCandidate('Clapham Common', 'Abbey Road'));
 
 const aldgatesHub = resolveAccessibleHubStation('Aldgate', 'None');
-assert.equal(stationsDataFallback[aldgatesHub], 'Full');
-assert.notEqual(aldgatesHub, 'Liverpool Street'); // Liverpool Street is not Full in published data
-assert.notEqual(aldgatesHub, 'Anerley'); // weak name-only picks should lose to dataset proximity
+assert.equal(aldgatesHub, null, 'Weak alphabetical neighbours must not be invented offline');
+assert.match(resolveAccessibleHubLabel('Aldgate', 'None'), /accessible station near Aldgate/i);
 
 const examples = buildExampleJourneys(stationsDataFallback, 4);
 assert.ok(examples.length >= 2);

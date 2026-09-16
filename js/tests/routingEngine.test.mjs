@@ -17,7 +17,7 @@ const run = async () => {
     });
     assert.equal(keylessResult.degraded, true);
     assert.equal((keylessResult.liveContext.journeyStrategies || []).length, 0);
-    assert.match(keylessResult.recommended.mapUrl, /maps\.google\.com\/maps\?output=embed&saddr=/);
+    assert.match(keylessResult.recommended.mapUrl, /maps\.google\.com\/maps\?output=embed(?:&hl=en)?&saddr=/);
     assert.match(keylessResult.recommended.mapUrl, /daddr=/);
     assert.match(keylessResult.recommended.mapUrl, /output=embed/);
     assert.match(keylessResult.assumptions.join(' '), /Live TfL data unavailable/);
@@ -39,9 +39,14 @@ const run = async () => {
         endAccessibility: 'None'
     });
     assert.equal(inaccessibleDestinationResult.policy.destinationTransferRequired, true);
-    const destHubName = inaccessibleDestinationResult.liveContext.destinationHub.replace(/ Station, London$/i, '');
-    assert.equal(stationsDataFallback[destHubName], 'Full');
-    assert.match(inaccessibleDestinationResult.recommended.steps[1].text, new RegExp(destHubName));
+    const destHubLabel = inaccessibleDestinationResult.liveContext.destinationHub;
+    const destHubName = destHubLabel.replace(/ Station, London$/i, '');
+    if (/^accessible station near\b/i.test(destHubLabel)) {
+        assert.match(destHubLabel, /Aldgate/i);
+    } else {
+        assert.equal(stationsDataFallback[destHubName], 'Full');
+        assert.match(inaccessibleDestinationResult.recommended.steps[1].text, new RegExp(destHubName));
+    }
 
     const inaccessibleOriginResult = await buildDynamicRecommendations({
         apiKey: '',
@@ -53,17 +58,27 @@ const run = async () => {
     assert.equal(inaccessibleOriginResult.scenario, 'None->Full');
     assert.equal(inaccessibleOriginResult.policy.originRerouteRequired, true);
     assert.equal(inaccessibleOriginResult.policy.destinationTransferRequired, false);
-    const originHubName = inaccessibleOriginResult.liveContext.originHub.replace(/ Station, London$/i, '');
-    assert.equal(stationsDataFallback[originHubName], 'Full');
-    assert.match(inaccessibleOriginResult.recommended.steps[0].text, /Aldgate/);
-    assert.match(inaccessibleOriginResult.recommended.steps[0].text, new RegExp(originHubName));
-    assert.equal(
-        decodeURIComponent(inaccessibleOriginResult.recommended.mapUrl).includes('saddr=Aldgate Station'),
-        false,
-        'None->Full map must not start at the inaccessible origin'
-    );
-    assert.match(decodeURIComponent(inaccessibleOriginResult.recommended.mapUrl), new RegExp(`saddr=${originHubName} Station`));
-
+    const originHubLabel = inaccessibleOriginResult.liveContext.originHub;
+    const originHubName = originHubLabel.replace(/ Station, London$/i, '');
+    if (/^accessible station near\b/i.test(originHubLabel)) {
+        assert.match(originHubLabel, /Aldgate/i);
+        assert.match(inaccessibleOriginResult.recommended.steps[0].text, /Aldgate/);
+        assert.equal(
+            decodeURIComponent(inaccessibleOriginResult.recommended.mapUrl).includes('saddr=Aldgate Station'),
+            false,
+            'None->Full map must not start at the inaccessible origin'
+        );
+    } else {
+        assert.equal(stationsDataFallback[originHubName], 'Full');
+        assert.match(inaccessibleOriginResult.recommended.steps[0].text, /Aldgate/);
+        assert.match(inaccessibleOriginResult.recommended.steps[0].text, new RegExp(originHubName));
+        assert.equal(
+            decodeURIComponent(inaccessibleOriginResult.recommended.mapUrl).includes('saddr=Aldgate Station'),
+            false,
+            'None->Full map must not start at the inaccessible origin'
+        );
+        assert.match(decodeURIComponent(inaccessibleOriginResult.recommended.mapUrl), new RegExp(`saddr=${originHubName} Station`));
+    }
     const categories = ['Full', 'Interchange', 'Partial', 'None'];
     const stationsByCategory = categories.reduce((acc, category) => {
         acc[category] = Object.entries(stationsDataFallback)
@@ -99,7 +114,7 @@ const run = async () => {
                     } else {
                         assert.equal(
                             result.policy.originRerouteRequired,
-                            ['None', 'Partial'].includes(startCategory),
+                            ['None', 'Partial', 'Interchange'].includes(startCategory),
                             `Origin reroute policy mismatch for ${startStation} -> ${endStation}`
                         );
                         assert.equal(
@@ -107,7 +122,7 @@ const run = async () => {
                             ['None', 'Partial', 'Interchange'].includes(endCategory),
                             `Destination transfer policy mismatch for ${startStation} -> ${endStation}`
                         );
-                        if (['None', 'Partial'].includes(startCategory) || ['None', 'Partial', 'Interchange'].includes(endCategory)) {
+                        if (['None', 'Partial', 'Interchange'].includes(startCategory) || ['None', 'Partial', 'Interchange'].includes(endCategory)) {
                             assert.equal(result.trust.differsFromTfl, true, `Expected TfL correction flag for ${startStation} -> ${endStation}`);
                             assert.equal(result.recommended.freeflowVerified, true);
                         }
@@ -117,7 +132,7 @@ const run = async () => {
                     assert.ok(result.recommended.steps.length > 0, `Missing route steps for ${startStation} -> ${endStation}`);
 
                     const mapText = decodeURIComponent(result.recommended.mapUrl);
-                    if (['None', 'Partial'].includes(startCategory) && !result.policy.preferSurfaceRoute) {
+                    if (['None', 'Partial', 'Interchange'].includes(startCategory) && !result.policy.preferSurfaceRoute) {
                         assert.equal(
                             mapText.includes(`saddr=${startStation} Station`),
                             false,

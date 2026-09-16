@@ -49,13 +49,13 @@
             return;
         }
 
-        window.onscroll = function () {
+        window.addEventListener('scroll', function () {
             if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 200) {
                 backToTopButton.style.display = "block";
             } else {
                 backToTopButton.style.display = "none";
             }
-        };
+        }, { passive: true });
 
         backToTopButton.addEventListener("click", function () {
             window.scrollTo({

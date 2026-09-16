@@ -5,8 +5,9 @@ import { stationsDataFallback } from '../data/stationsData.js';
 export class StationService {
     constructor() {
         this.stationData = {};
-        this.CACHE_KEY = 'tfl_station_data';
-        this.CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+        this.CACHE_KEY = 'tfl_station_data_v2';
+        this.CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
+        this.DATA_FINGERPRINT = Object.keys(stationsDataFallback).length;
     }
 
     async fetchStationData() {
@@ -63,11 +64,15 @@ export class StationService {
 
     getCachedData() {
         const cached = localStorage.getItem(this.CACHE_KEY);
-        if (!cached) return null;
+        if (!cached) {
+            // Drop legacy cache so accessibility updates are not stuck for 24h.
+            localStorage.removeItem('tfl_station_data');
+            return null;
+        }
 
         try {
-            const { data, timestamp } = JSON.parse(cached);
-            if (Date.now() - timestamp > this.CACHE_DURATION) {
+            const { data, timestamp, fingerprint } = JSON.parse(cached);
+            if (fingerprint !== this.DATA_FINGERPRINT || Date.now() - timestamp > this.CACHE_DURATION) {
                 localStorage.removeItem(this.CACHE_KEY);
                 return null;
             }
@@ -82,7 +87,8 @@ export class StationService {
     saveToCache(data) {
         const cacheData = {
             data,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            fingerprint: this.DATA_FINGERPRINT
         };
         localStorage.setItem(this.CACHE_KEY, JSON.stringify(cacheData));
     }

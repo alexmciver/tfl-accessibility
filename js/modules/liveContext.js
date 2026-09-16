@@ -2,11 +2,16 @@ import { stationsDataFallback } from '../data/stationsData.js';
 import {
     fetchArrivalsForStation,
     fetchLiftDisruptions,
+    fetchNearestFullHub,
     findLiftDisruptionsForStation,
     isTflLiveEnabled
 } from './tflApi.js';
 import { shouldPreferSurfaceRoute } from './localSurface.js';
-import { resolveAccessibleHubLabel } from './hubResolver.js';
+import {
+    hasStrongHubSignal,
+    resolveAccessibleHubLabel,
+    resolveAccessibleHubStation
+} from './hubResolver.js';
 
 const fallbackBreakdown = (station, accessibility, { surfaceLocal = false } = {}) => ({
     station,
@@ -37,6 +42,28 @@ const fallbackBreakdown = (station, accessibility, { surfaceLocal = false } = {}
 const deterministicHubName = (station, accessibility) => (
     resolveAccessibleHubLabel(station, accessibility, stationsDataFallback)
 );
+
+const hubLabelFromStation = (stationName) => `${stationName} Station, London`;
+
+const resolveLiveHubLabel = async (station, accessibility) => {
+    if (accessibility === 'Full') return hubLabelFromStation(station);
+
+    const nameDriven = resolveAccessibleHubStation(station, accessibility, stationsDataFallback);
+    if (nameDriven && nameDriven !== station && hasStrongHubSignal(station, nameDriven)) {
+        return hubLabelFromStation(nameDriven);
+    }
+
+    try {
+        const nearbyFull = await fetchNearestFullHub(station, stationsDataFallback);
+        if (nearbyFull) return hubLabelFromStation(nearbyFull);
+    } catch (error) {
+        // Fall through to name-driven / offline hub.
+    }
+
+    return nameDriven && nameDriven !== station
+        ? hubLabelFromStation(nameDriven)
+        : deterministicHubName(station, accessibility);
+};
 
 const liftStatusFromDisruptions = (station, accessibility, disruptions) => {
     const matches = findLiftDisruptionsForStation(disruptions, station);
@@ -167,22 +194,22 @@ export const getLiveContext = async ({ start, end, startAccessibility, endAccess
             end,
             startAccessibility,
             endAccessibility,
-            degradedReason: 'Live TfL data unavailable (no app key configured).'
+            degradedReason: 'Live TfL data unavailable (offline / file mode).'
         });
     }
 
     try {
-        const [disruptions, liveDepartures] = await Promise.all([
+        const [disruptions, liveDepartures, originHub, destinationHub] = await Promise.all([
             fetchLiftDisruptions(),
-            fetchArrivalsForStation(start).catch(() => [])
+            fetchArrivalsForStation(start).catch(() => []),
+            resolveLiveHubLabel(start, startAccessibility),
+            resolveLiveHubLabel(end, endAccessibility)
         ]);
 
         const startLifts = findLiftDisruptionsForStation(disruptions, start);
         const endLifts = findLiftDisruptionsForStation(disruptions, end);
-        const hubNames = [
-            deterministicHubName(start, startAccessibility),
-            deterministicHubName(end, endAccessibility)
-        ].map((hub) => hub.replace(/ Station, London$/i, ''));
+        const hubNames = [originHub, destinationHub]
+            .map((hub) => hub.replace(/ Station, London$/i, ''));
         const interchangeLifts = hubNames.flatMap((hub) => findLiftDisruptionsForStation(disruptions, hub));
 
         const disruptedLines = [...startLifts, ...endLifts, ...interchangeLifts]
@@ -220,8 +247,8 @@ export const getLiveContext = async ({ start, end, startAccessibility, endAccess
         return {
             degraded: false,
             assumptions,
-            originHub: deterministicHubName(start, startAccessibility),
-            destinationHub: deterministicHubName(end, endAccessibility),
+            originHub,
+            destinationHub,
             disruptedLines: [...new Set(disruptedLines)],
             liftMessages,
             stationBreakdown: [

@@ -14,8 +14,26 @@ const levelCertainty = (accessibility) => {
 };
 
 const liftHitsStation = (liftMessages = [], stationName = '') => {
-    const key = String(stationName).toLowerCase();
-    return liftMessages.some((message) => String(message).toLowerCase().includes(key.replace(/ station.*$/i, '').trim()));
+    const target = String(stationName || '').trim();
+    if (!target) return false;
+    return liftMessages.some((message) => {
+        const text = String(message || '');
+        if (!text) return false;
+        // Reuse the same equality/prefix rules as live lift matching (Bank ⊈ Embankment).
+        const normalise = (value) => String(value)
+            .toLowerCase()
+            .replace(/['’]/g, '')
+            .replace(/\bstation\b/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
+        const left = normalise(text);
+        const right = normalise(target);
+        if (!left || !right) return false;
+        if (left === right) return true;
+        // Message often embeds the station name as a phrase, not the whole string.
+        const padded = ` ${left} `;
+        return padded.includes(` ${right} `);
+    });
 };
 
 /**
@@ -53,7 +71,7 @@ export const buildConfidenceReport = ({
         why.push('Boarding ramp flagged — ask staff at departure and arrival.');
     }
     if (profile.noEscalators) {
-        why.push('No-escalator preference noted — prefer lift-signed routes in stations.');
+        why.push('No-escalator preference noted — prefer lift-signed routes and surface options where ranked higher.');
     }
 
     const walkSteps = (planA?.steps || []).filter((step) => step.type === 'walk');

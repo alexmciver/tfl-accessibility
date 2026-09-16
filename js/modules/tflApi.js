@@ -1,11 +1,10 @@
 import { TFL_APP_KEY } from '../config.js';
+import { stationCoords } from '../data/stationCoords.js';
 
 const API_BASE = 'https://api.tfl.gov.uk';
 const REQUEST_TIMEOUT_MS = 10000;
 const RAIL_MODES = new Set(['tube', 'dlr', 'overground', 'elizabeth-line', 'national-rail']);
 const stopPointCache = new Map();
-
-const hasAppKey = () => Boolean(TFL_APP_KEY);
 
 const buildUrl = (path, params = {}) => {
     const url = new URL(path.startsWith('http') ? path : `${API_BASE}${path}`);
@@ -18,10 +17,6 @@ const buildUrl = (path, params = {}) => {
 };
 
 const tflFetch = async (path, params = {}) => {
-    if (!hasAppKey()) {
-        throw new Error('TfL app key is not configured');
-    }
-
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
@@ -42,11 +37,18 @@ const normaliseStationKey = (name = '') => String(name)
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
-const stationNameMatches = (candidate, station) => {
+/**
+ * Match station names without substring false positives (Bank ⊈ Embankment).
+ * Allows “Wembley Park Station” ↔ “Wembley Park” via whole-token / prefix equality.
+ */
+export const stationNameMatches = (candidate, station) => {
     const left = normaliseStationKey(candidate);
     const right = normaliseStationKey(station);
     if (!left || !right) return false;
-    return left === right || left.includes(right) || right.includes(left);
+    if (left === right) return true;
+    // Longer label may add a trailing qualifier after the shorter name.
+    if (left.startsWith(`${right} `) || right.startsWith(`${left} `)) return true;
+    return false;
 };
 
 const pickBestStopMatch = (matches = []) => {
@@ -101,10 +103,48 @@ export const searchStopPoint = async (query) => {
         id: best.id,
         icsId: best.icsId,
         name: best.name,
-        modes: best.modes || []
+        modes: best.modes || [],
+        lat: best.lat,
+        lon: best.lon
     };
     stopPointCache.set(cacheKey, resolved);
     return resolved;
+};
+
+/**
+ * Pick the nearest published Full station using origin lat/lon against
+ * the Full-station coordinate cache (no hard-coded hub names).
+ */
+export const fetchNearestFullHub = async (stationName, stationData = {}) => {
+    const origin = await searchStopPoint(stationName);
+    const originLat = Number.isFinite(origin?.lat) ? origin.lat : null;
+    const originLon = Number.isFinite(origin?.lon) ? origin.lon : null;
+    if (originLat == null || originLon == null) return null;
+
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const distanceMetres = (lat1, lon1, lat2, lon2) => {
+        const earth = 6371000;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a = Math.sin(dLat / 2) ** 2
+            + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+        return 2 * earth * Math.asin(Math.sqrt(a));
+    };
+
+    let best = null;
+    let bestDistance = Infinity;
+    Object.entries(stationData).forEach(([name, accessibility]) => {
+        if (accessibility !== 'Full' || name === stationName) return;
+        const point = stationCoords[name];
+        if (!point || !Number.isFinite(point.lat) || !Number.isFinite(point.lon)) return;
+        const distance = distanceMetres(originLat, originLon, point.lat, point.lon);
+        if (distance < bestDistance) {
+            bestDistance = distance;
+            best = name;
+        }
+    });
+
+    return best;
 };
 
 export const fetchArrivals = async (stopId, limit = 5) => {
@@ -200,4 +240,16 @@ export const fetchStepFreeJourneyStrategies = async ({ fromStation, toStation, a
     return journeys.map((journey, index) => journeyToStrategy(journey, index, apiKey, fromStation, toStation));
 };
 
-export const isTflLiveEnabled = hasAppKey;
+/**
+ * Live TfL: browser always attempts public endpoints; app key raises rate limits.
+ * Node unit tests stay offline unless FREEFLOW_TFL_APP_KEY (or FORCE) is set.
+ * Set FREEFLOW_TFL_LIVE=0 to disable live calls in the browser (degraded mode).
+ */
+export const isTflLiveEnabled = () => {
+    if (typeof window !== 'undefined') {
+        const flag = window.FREEFLOW_TFL_LIVE;
+        if (flag === 0 || flag === '0' || flag === false) return false;
+        return true;
+    }
+    return Boolean(TFL_APP_KEY);
+};

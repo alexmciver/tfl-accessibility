@@ -37,7 +37,9 @@ export const scoreHubCandidate = (station, candidate) => {
     const stationLocality = localityKey(station);
     const candidateLocality = localityKey(candidate);
 
-    if (stationLocality && candidateLocality && stationLocality === candidateLocality) {
+    // Strong locality / name signal only — never invent a hub from alphabetical neighbours.
+    if (stationLocality && candidateLocality && stationLocality === candidateLocality
+        && !['east', 'west', 'north', 'south', 'high', 'new', 'old', 'lower', 'upper', 'royal', 'wood', 'park', 'road', 'street', 'green', 'hill', 'cross'].includes(stationLocality)) {
         score += 100;
     }
 
@@ -61,12 +63,11 @@ export const scoreHubCandidate = (station, candidate) => {
     return score;
 };
 
+export const STRONG_HUB_SCORE = 24;
+
 export const pickBestFullHub = (station, stationData = stationsDataFallback) => {
     const fullStations = fullStationsFrom(stationData);
-    if (!fullStations.length) return station;
-
-    const names = Object.keys(stationData);
-    const originIndex = names.indexOf(station);
+    if (!fullStations.length) return null;
 
     let bestSimilar = null;
     let bestSimilarScore = -Infinity;
@@ -78,26 +79,15 @@ export const pickBestFullHub = (station, stationData = stationsDataFallback) => 
         }
     });
 
-    // Strong locality / name signal wins.
-    if (bestSimilar && bestSimilarScore >= 20) return bestSimilar;
-
-    // Otherwise use nearest Full station in the published dataset order
-    // (data-relative proximity — no hard-coded hub names).
-    if (originIndex === -1) return bestSimilar || fullStations[0];
-
-    let bestNear = fullStations[0];
-    let bestDistance = Infinity;
-    fullStations.forEach((candidate) => {
-        const candidateIndex = names.indexOf(candidate);
-        if (candidateIndex < 0) return;
-        const distance = Math.abs(candidateIndex - originIndex);
-        if (distance < bestDistance) {
-            bestDistance = distance;
-            bestNear = candidate;
-        }
-    });
-    return bestNear;
+    // Only accept a named hub when locality / name similarity is strong.
+    // Weak alphabetical neighbours (Aldgate → Acton Town) mislead travellers.
+    if (bestSimilar && bestSimilarScore >= STRONG_HUB_SCORE) return bestSimilar;
+    return null;
 };
+
+export const hasStrongHubSignal = (station, hubStation) => (
+    scoreHubCandidate(station, hubStation) >= STRONG_HUB_SCORE
+);
 
 /**
  * Resolve an accessible hub station name (without “Station, London” suffix).
@@ -120,7 +110,11 @@ export const resolveAccessibleHubLabel = (
     station,
     accessibility,
     stationData = stationsDataFallback
-) => `${resolveAccessibleHubStation(station, accessibility, stationData)} Station, London`;
+) => {
+    const hubStation = resolveAccessibleHubStation(station, accessibility, stationData);
+    if (hubStation) return `${hubStation} Station, London`;
+    return `accessible station near ${station} Station, London`;
+};
 
 /**
  * Build example Full→Full journeys from the live dataset (no hard-coded pairs).

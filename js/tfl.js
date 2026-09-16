@@ -396,6 +396,13 @@ const renderMapPreviewControls = (option, context = {}) => {
     });
 
     applyMapPreview(preferred);
+
+    if (mapStageCaption && !API_KEY) {
+        const base = mapStageCaption.textContent || '';
+        if (!base.includes('Maps API key')) {
+            mapStageCaption.textContent = `${base} (Add a Google Maps API key for the most reliable map embeds.)`.trim();
+        }
+    }
 };
 
 const renderStationBreakdown = (stationBreakdown = []) => {
@@ -460,8 +467,15 @@ const renderLiftStatus = (liveContext = {}) => {
     const liftChecks = liveContext.liftChecks || {};
     const liftMessages = liveContext.liftMessages || [];
     const liftsAreLive = Boolean(liveContext.liftsAreLive);
+    const hasChecks = Boolean(liftChecks.start || liftChecks.end || liftChecks.interchange);
 
     liftStatusContainer.innerHTML = '';
+    if (!hasChecks) {
+        liftStatusContainer.hidden = true;
+        return;
+    }
+
+    liftStatusContainer.hidden = false;
     const heading = document.createElement('h3');
     heading.className = 'panel-title';
     heading.textContent = 'Are the lifts working?';
@@ -647,7 +661,10 @@ const resetSelections = () => {
     routeMeta.textContent = '';
     accessibilityGuidance.innerHTML = '';
     stationBreakdownContainer.innerHTML = '';
-    liftStatusContainer.innerHTML = '';
+    if (liftStatusContainer) {
+        liftStatusContainer.innerHTML = '';
+        liftStatusContainer.hidden = true;
+    }
     liveDeparturesContainer.innerHTML = '';
     assistancePanel.innerHTML = '';
     mapPreviewControls.innerHTML = '';
@@ -774,9 +791,8 @@ const planRoute = async () => {
         saveRecent(start, end);
         buildShareText(start, end, confidence, planA, planB);
         journeyCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        mapContainer?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } catch (error) {
-        handleError(error, ErrorTypes.MAPS_INITIALIZATION);
+        handleError(error, ErrorTypes.NETWORK);
     }
 };
 
@@ -885,13 +901,14 @@ export const fetchTFL = async () => {
 };
 
 const initializeBackToTop = () => {
-    window.onscroll = function () {
+    const onScroll = () => {
         if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 200) {
             backToTopButton.style.display = 'block';
         } else {
             backToTopButton.style.display = 'none';
         }
     };
+    window.addEventListener('scroll', onScroll, { passive: true });
     backToTopButton.addEventListener('click', function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });

@@ -5,6 +5,11 @@ const ACCESS_META = {
     None: { label: 'Not step-free', short: 'None', rank: 1, className: 'access-none' }
 };
 
+/** Strip curly/straight apostrophes so King’s and King's match. */
+const normaliseSearchText = (value = '') => String(value)
+    .toLowerCase()
+    .replace(/['’]/g, '');
+
 export const getAccessMeta = (level) => ACCESS_META[level] || {
     label: 'Unknown access',
     short: 'Unknown',
@@ -93,7 +98,7 @@ export class StationCombobox {
     }
 
     filteredStations(query = '') {
-        const normalised = query.trim().toLowerCase();
+        const normalised = normaliseSearchText(query.trim());
         const mode = this.getFilterMode();
         return this.stations
             .filter((station) => {
@@ -101,7 +106,7 @@ export class StationCombobox {
                     return false;
                 }
                 if (!normalised) return true;
-                return station.name.toLowerCase().includes(normalised);
+                return normaliseSearchText(station.name).includes(normalised);
             })
             .slice(0, 12);
     }
@@ -150,8 +155,8 @@ export class StationCombobox {
                 this.selectStation(options[this.activeIndex].dataset.value);
                 return;
             }
-            const typed = this.input.value.trim().toLowerCase();
-            const exact = this.stations.find((station) => station.name.toLowerCase() === typed);
+            const typed = normaliseSearchText(this.input.value.trim());
+            const exact = this.stations.find((station) => normaliseSearchText(station.name) === typed);
             const firstVisible = options[0]?.dataset.value;
             if (exact) {
                 this.selectStation(exact.name);
@@ -207,15 +212,22 @@ export class StationCombobox {
             this.updateBadge('');
             return '';
         }
-        if (this.select.value && this.select.value.toLowerCase() === typed.toLowerCase()) {
+        if (this.select.value && normaliseSearchText(this.select.value) === normaliseSearchText(typed)) {
+            // Keep catalogue spelling in the input when apostrophes differ.
+            if (this.select.value !== typed) this.input.value = this.select.value;
             return this.select.value;
         }
-        const exact = this.stations.find((station) => station.name.toLowerCase() === typed.toLowerCase());
+        const exact = this.stations.find(
+            (station) => normaliseSearchText(station.name) === normaliseSearchText(typed)
+        );
         if (exact) {
             this.selectStation(exact.name);
             return exact.name;
         }
-        return this.select.value || '';
+        // Typed text is not a known station — clear stale selection so plan cannot use it.
+        this.select.value = '';
+        this.updateBadge('');
+        return '';
     }
 
     updateBadge(level) {

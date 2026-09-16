@@ -124,8 +124,37 @@ export const learnHubOverride = (station, hub, {
     return saveRouteMemory(memory);
 };
 
+/** Clear or demote a learned hub tip after traveller feedback that it was wrong. */
+export const demoteHubOverride = (station, {
+    reason = 'Traveller feedback: hub tip demoted',
+    memory = loadRouteMemory()
+} = {}) => {
+    const key = NORMALISE(station);
+    const existing = memory.hubOverrides?.[key];
+    if (!existing) {
+        pushEvent(memory, { type: 'hub-demote', station, reason });
+        return saveRouteMemory(memory);
+    }
+    const nextWeight = Math.max(0, (existing.weight || 0) - 3);
+    if (nextWeight < 1) {
+        delete memory.hubOverrides[key];
+    } else {
+        memory.hubOverrides[key] = {
+            ...existing,
+            weight: nextWeight,
+            reason,
+            source: 'user',
+            updatedAt: new Date().toISOString()
+        };
+    }
+    pushEvent(memory, { type: 'hub-demote', station, hub: existing.hub, reason });
+    return saveRouteMemory(memory);
+};
+
 /**
  * Auto-learn from a Free Flow plan: surface pairs and hubs Free Flow already corrected.
+ * Surface auto-learn only when policy already chose surface-first (strong locality cue),
+ * not merely because a contingency plan was labelled surfaceRoute.
  */
 export const learnFromPlan = ({
     start,
@@ -136,7 +165,7 @@ export const learnFromPlan = ({
 } = {}) => {
     let memory = loadRouteMemory();
 
-    if (policy.preferSurfaceRoute || planA?.surfaceRoute) {
+    if (policy.preferSurfaceRoute) {
         memory = learnSurfacePair(start, end, {
             reason: 'Auto-learned: both ends street-constrained in a local corridor',
             source: 'auto',
@@ -193,19 +222,20 @@ export const learnFromFeedback = ({
     }
 
     if (feedback === 'wrong-hub') {
-        // Strengthen surface preference and weaken reliance on current hubs by
-        // boosting surface and recording the complaint.
+        // Prefer surface next time and demote the hub tip that felt wrong.
         memory = learnSurfacePair(start, end, {
             reason: 'Traveller feedback: hub plan felt wrong for this corridor',
             source: 'user',
             weight: 2,
             memory
         });
-        if (liveContext.originHub) {
-            memory = learnHubOverride(start, liveContext.originHub, {
-                reason: 'Retained hub after feedback — verify next time',
-                source: 'user',
-                weight: 1,
+        memory = demoteHubOverride(start, {
+            reason: 'Traveller feedback: wrong hub / Tube detour',
+            memory
+        });
+        if (liveContext.destinationHub) {
+            memory = demoteHubOverride(end, {
+                reason: 'Traveller feedback: wrong hub / Tube detour',
                 memory
             });
         }

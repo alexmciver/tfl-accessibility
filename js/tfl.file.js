@@ -467,7 +467,7 @@
                     + `&origin=${encodeURIComponent(origin)}`
                     + `&destination=${encodeURIComponent(destination)}`
                     + `&mode=transit&zoom=12`
-                : `https://maps.google.com/maps?output=embed&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(destination)}&dirflg=r`;
+                : `https://maps.google.com/maps?output=embed&hl=en&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(destination)}&dirflg=r`;
             this.mapElement.src = mapUrl;
         }
         reset() {
@@ -478,8 +478,8 @@
     class StationService {
         constructor() {
             this.stationData = {};
-            this.CACHE_KEY = 'tfl_station_data';
-            this.CACHE_DURATION = 24 * 60 * 60 * 1000;
+            this.CACHE_KEY = 'tfl_station_data_v2';
+            this.CACHE_DURATION = 6 * 60 * 60 * 1000;
         }
         async fetchStationData() {
             const cachedData = this.getCachedData();
@@ -677,7 +677,7 @@
     const renderJourneyQuickSummary = (start, end, startAccessibility, endAccessibility) => {
         if (!journeyQuickSummary) return;
         const surface = preferSurfaceRoute(start, end, startAccessibility, endAccessibility);
-        const needsTransfer = ['None', 'Partial'].includes(startAccessibility) || ['None', 'Partial', 'Interchange'].includes(endAccessibility);
+        const needsTransfer = ['None', 'Partial', 'Interchange'].includes(startAccessibility) || ['None', 'Partial', 'Interchange'].includes(endAccessibility);
         const message = surface
             ? `Route from ${start} to ${end}: both ends are not street-to-train step-free and are local — use bus or walk, not Tube.`
             : needsTransfer
@@ -862,31 +862,57 @@
                 + `&mode=${encodeURIComponent(mode)}&zoom=12`;
         }
         const dirFlag = mode === 'walking' ? 'w' : mode === 'transit' ? 'r' : mode === 'driving' ? 'd' : '';
-        let url = `https://maps.google.com/maps?output=embed&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(destination)}`;
+        let url = `https://maps.google.com/maps?output=embed&hl=en&saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(destination)}`;
         if (dirFlag) {
             url += `&dirflg=${encodeURIComponent(dirFlag)}`;
         }
         return url;
     };
 
+    const GENERIC_LOCALITY = new Set([
+        'east', 'west', 'north', 'south', 'high', 'new', 'old', 'lower', 'upper',
+        'royal', 'wood', 'park', 'road', 'street', 'green', 'hill', 'cross',
+        'queens', 'kings', 'manor', 'gate', 'town', 'common'
+    ]);
+    const SKIP_TOKENS = new Set(['the', 'st', 'saint', 'and', 'for', 'of']);
+
+    const significantTokens = (stationName = '') => String(stationName)
+        .toLowerCase()
+        .replace(/['’]/g, '')
+        .replace(/\bstation\b/g, '')
+        .replace(/[^a-z0-9\s]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .split(' ')
+        .filter((part) => part.length > 1 && !SKIP_TOKENS.has(part));
+
     const localityKey = (stationName = '') => {
-        const parts = String(stationName).toLowerCase().replace(/[^a-z0-9\s]+/g, ' ').trim().split(/\s+/);
-        if (parts.length < 2) return null;
+        const parts = significantTokens(stationName);
+        if (parts.length < 1) return null;
+        if (String(stationName).trim().split(/\s+/).length < 2) return null;
         return parts[0] || null;
+    };
+
+    const shareLocality = (start, end) => {
+        const leftTokens = significantTokens(start);
+        const rightTokens = significantTokens(end);
+        if (!leftTokens.length || !rightTokens.length) return false;
+        const shared = leftTokens.filter((token) => rightTokens.includes(token));
+        if (!shared.length) return false;
+        if (shared.length >= 2) return true;
+        return !GENERIC_LOCALITY.has(shared[0]);
     };
 
     const preferSurfaceRoute = (start, end, startAccessibility, endAccessibility) => {
         const bothBlocked = ['None', 'Partial'].includes(startAccessibility)
             && ['None', 'Partial'].includes(endAccessibility);
         if (!bothBlocked) return false;
-        const left = localityKey(start);
-        const right = localityKey(end);
-        return Boolean(left && right && left === right);
+        return shareLocality(start, end);
     };
 
     const scoreHubCandidate = (station, candidate) => {
         if (!station || !candidate || station === candidate) return -1;
-        const normalise = (name = '') => String(name).toLowerCase().replace(/['’]/g, '').replace(/\bstation\b/g, '').replace(/[^a-z0-9\s]+/g, ' ').replace(/\s+/g, ' ').trim();
+        const normalise = (name = '') => String(name).toLowerCase().replace(/['’']/g, '').replace(/\bstation\b/g, '').replace(/[^a-z0-9\s]+/g, ' ').replace(/\s+/g, ' ').trim();
         const tokens = (name = '') => normalise(name).split(' ').filter((part) => part.length > 1);
         const stationTokens = tokens(station);
         const candidateTokens = tokens(candidate);
@@ -894,7 +920,8 @@
         let score = 0;
         const stationLocality = localityKey(station);
         const candidateLocality = localityKey(candidate);
-        if (stationLocality && candidateLocality && stationLocality === candidateLocality) score += 100;
+        if (stationLocality && candidateLocality && stationLocality === candidateLocality
+            && !GENERIC_LOCALITY.has(stationLocality)) score += 100;
         stationTokens.forEach((token) => {
             if (candidateTokens.includes(token)) score += 24;
         });
@@ -911,12 +938,10 @@
     };
 
     const pickBestFullHub = (station) => {
-        const names = Object.keys(stationsDataFallback);
         const fullStations = Object.entries(stationsDataFallback)
             .filter(([, accessibility]) => accessibility === 'Full')
             .map(([name]) => name);
-        if (!fullStations.length) return station;
-        const originIndex = names.indexOf(station);
+        if (!fullStations.length) return null;
         let bestSimilar = null;
         let bestSimilarScore = -Infinity;
         fullStations.forEach((candidate) => {
@@ -926,25 +951,15 @@
                 bestSimilar = candidate;
             }
         });
-        if (bestSimilar && bestSimilarScore >= 20) return bestSimilar;
-        if (originIndex === -1) return bestSimilar || fullStations[0];
-        let bestNear = fullStations[0];
-        let bestDistance = Infinity;
-        fullStations.forEach((candidate) => {
-            const candidateIndex = names.indexOf(candidate);
-            if (candidateIndex < 0) return;
-            const distance = Math.abs(candidateIndex - originIndex);
-            if (distance < bestDistance) {
-                bestDistance = distance;
-                bestNear = candidate;
-            }
-        });
-        return bestNear;
+        if (bestSimilar && bestSimilarScore >= 24) return bestSimilar;
+        return null;
     };
 
     const resolveAccessibleHub = (station, accessibility) => {
         if (accessibility === 'Full') return `${station} Station, London`;
-        return `${pickBestFullHub(station)} Station, London`;
+        const hub = pickBestFullHub(station);
+        if (hub) return `${hub} Station, London`;
+        return `accessible station near ${station} Station, London`;
     };
 
     const buildRouteOptions = (start, end, startAccessibility, endAccessibility) => {
@@ -1172,7 +1187,7 @@
             mapContainer.style.display = "block";
             overlay.classList.add("hidden");
         } catch (error) {
-            handleError(error, ErrorTypes.MAPS_INITIALIZATION);
+            handleError(error, ErrorTypes.NETWORK);
         }
     };
 
@@ -1199,13 +1214,13 @@
 
     const initializeBackToTop = () => {
         if (!backToTopButton) return;
-        window.onscroll = function () {
+        window.addEventListener('scroll', function () {
             if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 200) {
                 backToTopButton.style.display = "block";
             } else {
                 backToTopButton.style.display = "none";
             }
-        };
+        }, { passive: true });
         backToTopButton.addEventListener("click", function () {
             window.scrollTo({ top: 0, behavior: "smooth" });
         });
