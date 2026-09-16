@@ -44,7 +44,7 @@ const inaccessibleOrigin = await buildDynamicRecommendations({
 assert.equal(inaccessibleOrigin.trust.differsFromTfl, true);
 assert.equal(inaccessibleOrigin.recommended.freeflowVerified, true);
 assert.equal(inaccessibleOrigin.recommended.id.includes('hub') || inaccessibleOrigin.recommended.freeflowVerified, true);
-assert.match(inaccessibleOrigin.recommended.badge || '', /Free Flow|hub|verified/i);
+assert.match(inaccessibleOrigin.recommended.badge || '', /Free Flow|hub|verified|Bus start|Bus finish|Bus links/i);
 assert.equal(
     decodeURIComponent(inaccessibleOrigin.recommended.mapUrl).includes('saddr=Aldgate Station'),
     false

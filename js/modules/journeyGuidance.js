@@ -3,6 +3,24 @@
  */
 export const buildJourneyGuidance = (start, end, startAccessibility, endAccessibility, policy = {}) => {
     if (policy.preferSurfaceRoute) {
+        const ontoFull = endAccessibility === 'Full' && ['None', 'Partial'].includes(startAccessibility);
+        const offFull = startAccessibility === 'Full' && ['None', 'Partial'].includes(endAccessibility);
+        if (ontoFull) {
+            return {
+                headline: `${end} is the nearby step-free station. Bus or walk from ${start} — skip a longer Tube detour for this local hop.`,
+                items: [
+                    `Do this now: take a local accessible bus or walk from ${start} to step-free ${end}.`
+                ]
+            };
+        }
+        if (offFull) {
+            return {
+                headline: `${start} is already step-free. Finish the short local hop to ${end} by bus or walk.`,
+                items: [
+                    `Do this now: leave ${start} on the surface and take a local bus or walk to ${end}.`
+                ]
+            };
+        }
         return {
             headline: 'Both stations are nearby and not street-to-train step-free. Stay on the surface — bus or walk — instead of a Tube detour.',
             items: [
@@ -40,9 +58,9 @@ export const buildJourneyGuidance = (start, end, startAccessibility, endAccessib
 
     if (endAccessibility === 'None') {
         return {
-            headline: 'Destination is not street-to-train step-free. Leave rail at an accessible hub, then finish by bus or walk.',
+            headline: `${end} is not street-to-train step-free — you will need a bus (or short walk) at the end.`,
             items: [
-                `Do this now: travel by Tube toward an accessible hub near ${end}, then transfer by bus or short walk.`
+                `Do this now: travel by Tube to an accessible hub near ${end}, then take a bus or short walk. Do not exit ${end} expecting street-to-train access.`
             ]
         };
     }

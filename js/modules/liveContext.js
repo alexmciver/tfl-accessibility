@@ -112,9 +112,9 @@ const deterministicLiftCheck = (station, accessibility) => {
     }
     return {
         state: 'unknown',
-        label: 'Live lift status unavailable',
-        detail: 'Add a TfL app key to see if lifts are working right now.'
-    };
+            label: 'Live lift status unavailable',
+            detail: 'Could not reach TfL right now — re-check lifts on TfL Go before you travel.'
+        };
 };
 
 const collectLiftMessages = (...groups) => {
@@ -194,7 +194,7 @@ export const getLiveContext = async ({ start, end, startAccessibility, endAccess
             end,
             startAccessibility,
             endAccessibility,
-            degradedReason: 'Live TfL data unavailable (offline / file mode).'
+            degradedReason: 'Live TfL data unavailable.'
         });
     }
 

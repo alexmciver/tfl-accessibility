@@ -82,7 +82,7 @@ for (const startCategory of CATEGORIES) {
         if (originExpected && !result.policy.preferSurfaceRoute && mapText.includes(`saddr=${start} Station`)) {
             recordFailure(scenario, `map still starts at inaccessible/partial origin ${start}`);
         }
-        if (originExpected && !result.policy.preferSurfaceRoute && !/accessible hub|bus\/walk transfer from/i.test(stepText)) {
+        if (originExpected && !result.policy.preferSurfaceRoute && !/accessible hub|bus \(or short walk\) from|bus\/walk transfer from/i.test(stepText)) {
             recordFailure(scenario, 'steps missing origin hub transfer');
         }
         if (result.policy.preferSurfaceRoute && !/bus|walk/i.test(stepText)) {
@@ -94,7 +94,7 @@ for (const startCategory of CATEGORIES) {
             // Direct daddr to inaccessible end with no waypoints is unsafe.
             recordFailure(scenario, `map ends directly at inaccessible destination ${end}`);
         }
-        if (destinationExpected && endCategory === 'None' && !/final constrained segment|bus\/walking transfer/i.test(stepText)) {
+        if (destinationExpected && endCategory === 'None' && !/Leave the Tube|accessible bus|bus \(or short walk\)|final constrained segment|bus\/walking transfer/i.test(stepText)) {
             recordFailure(scenario, 'steps missing destination transfer');
         }
 

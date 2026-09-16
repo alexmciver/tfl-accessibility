@@ -1,10 +1,6 @@
 (() => {
     const script = document.createElement('script');
-    if (window.location.protocol === 'file:') {
-        script.src = 'js/tfl.file.js';
-    } else {
-        script.type = 'module';
-        script.src = 'js/tfl.js';
-    }
+    // One planner build for file:// and http(s) — same live lifts, maps, and guidance.
+    script.src = 'js/tfl.bundle.js';
     document.body.appendChild(script);
 })();

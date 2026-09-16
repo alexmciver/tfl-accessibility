@@ -13,7 +13,7 @@ import {
 } from './modules/accessProfile.js';
 import { buildJourneyGuidance } from './modules/journeyGuidance.js';
 import { trustBannerCopy } from './modules/tflTrust.js';
-import { buildMapStages, buildMapLegend } from './modules/mapStages.js';
+import { buildMapStages, buildMapLegend, buildMapHowto } from './modules/mapStages.js';
 import { buildExampleJourneys } from './modules/hubResolver.js';
 import { buildConfidenceReport, buildAssistanceBriefing } from './modules/confidenceEngine.js';
 import {
@@ -21,6 +21,11 @@ import {
     memorySummary,
     loadRouteMemory
 } from './modules/routeLearning.js';
+import {
+    readPlannerUrl,
+    writePlannerUrl,
+    clearPlannerUrl
+} from './modules/urlState.js';
 
 const stationService = new StationService();
 const mapService = new MapService();
@@ -44,6 +49,10 @@ const mapPreviewControls = document.getElementById('map-preview-controls');
 const mapElement = document.getElementById('map');
 const mapStageCaption = document.getElementById('map-stage-caption');
 const mapLegend = document.getElementById('map-legend');
+const mapHowto = document.getElementById('map-howto');
+const mapHowtoList = document.getElementById('map-howto-list');
+const mapStageActive = document.getElementById('map-stage-active');
+const liveConditions = document.getElementById('live-conditions');
 const journeyCard = document.getElementById('journey-summary');
 const accessScoreEl = document.getElementById('access-score');
 const journeyTimelineEl = document.getElementById('journey-timeline');
@@ -95,6 +104,18 @@ const persistProfileFromForm = () => {
     return currentProfile;
 };
 
+const syncUrlFromUi = ({ plan = false, replace = true } = {}) => {
+    const start = startCombobox?.getValue() || startStationSelect?.value || '';
+    const end = endCombobox?.getValue() || endStationSelect?.value || '';
+    writePlannerUrl({
+        from: start,
+        to: end,
+        profile: currentProfile,
+        stepFree: Boolean(stepFreeFilter?.checked),
+        plan: plan && Boolean(start && end)
+    }, { replace });
+};
+
 const renderGuidanceList = (guidance) => {
     if (!accessibilityGuidance) return;
     accessibilityGuidance.innerHTML = '';
@@ -112,16 +133,19 @@ const renderDegradedBanner = (recommendations) => {
 
     if (recommendations.degraded) {
         parts.push(`
-            <p><strong>Live TfL data is not active.</strong>
-            Showing Free Flow published-access guidance and hub contingencies.
-            Add a TfL app key for live rail timing and lift disruptions.</p>
+            <details class="banner-fold">
+                <summary><strong>Live TfL data is not active</strong> — showing published-access guidance</summary>
+                <p>Add a TfL app key for higher rate limits on live rail timing and lift disruptions.</p>
+            </details>
         `);
     }
     if (trustCopy) {
         parts.push(`
-            <p><strong>${escapeHtml(trustCopy.title)}</strong></p>
-            <p>${escapeHtml(trustCopy.body)}</p>
-            <ul>${trustCopy.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+            <details class="banner-fold">
+                <summary><strong>${escapeHtml(trustCopy.title)}</strong></summary>
+                <p>${escapeHtml(trustCopy.body)}</p>
+                <ul>${trustCopy.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+            </details>
         `);
     }
 
@@ -219,8 +243,8 @@ const renderPlanCard = (container, plan, label, confidenceSteps = null) => {
         const certainty = step.certainty
             ? `<span class="certainty-chip ${step.certainty.className}">${escapeHtml(step.certainty.label)}</span>`
             : '';
-        return `<li>
-            <span class="step-type">${escapeHtml(step.type || 'step')}</span>
+        return `<li class="plan-step plan-step-${escapeHtml(step.type || 'step')}">
+            <span class="step-type step-type-${escapeHtml(step.type || 'step')}">${escapeHtml(step.type || 'step')}</span>
             <span class="step-copy">${escapeHtml(step.text)}</span>
             ${certainty}
             ${step.durationMins ? `<em>${escapeHtml(String(step.durationMins))} min</em>` : ''}
@@ -238,7 +262,7 @@ const renderPlanCard = (container, plan, label, confidenceSteps = null) => {
                 <span>${escapeHtml(changes)}</span>
                 <span>${escapeHtml(plan.badge || 'Route')}</span>
             </div>
-            <div class="mode-chip-row">${modeSet.map((mode) => `<span class="mode-chip">${escapeHtml(mode)}</span>`).join('')}</div>
+            <div class="mode-chip-row">${modeSet.map((mode) => `<span class="mode-chip mode-chip-${escapeHtml(mode)}">${escapeHtml(mode)}</span>`).join('')}</div>
         </div>
         <ol class="route-step-list plan-step-list">${stepsHtml}</ol>
     `;
@@ -246,20 +270,23 @@ const renderPlanCard = (container, plan, label, confidenceSteps = null) => {
 
 const renderJourneyQuickSummary = (start, end, confidence, planA) => {
     if (!journeyQuickSummary) return;
-    const duration = planA?.durationMins ? `About ${planA.durationMins} minutes.` : '';
+    const duration = planA?.durationMins ? `About ${planA.durationMins} minutes` : '';
     journeyQuickSummary.innerHTML = `
         <p class="journey-pair">${escapeHtml(start)} <span aria-hidden="true">→</span> ${escapeHtml(end)}</p>
-        <p><strong>${escapeHtml(confidence.grade)}</strong> access confidence (${confidence.score}/100). ${escapeHtml(confidence.summary)}</p>
-        <p class="journey-scoreline">${escapeHtml(duration)} ${escapeHtml(confidence.profileLine)}</p>
+        <p class="journey-scoreline">${escapeHtml([duration, confidence.profileLine].filter(Boolean).join(' · '))}</p>
     `;
 };
 
 const applyMapPreview = (previewMode) => {
     const stage = currentMapStages.find((item) => item.id === previewMode) || currentMapStages[0];
     if (!stage) return;
-    if (mapElement) mapElement.src = stage.url;
+    mapService.showStage(stage);
     if (mapStageCaption) mapStageCaption.textContent = stage.caption;
-    if (mapElement) mapElement.title = `Route map: ${stage.label} — ${stage.hint}`;
+    if (mapStageActive) {
+        mapStageActive.hidden = false;
+        mapStageActive.textContent = `Now showing: ${stage.label} — ${stage.why || stage.hint}`;
+    }
+    if (mapElement) mapElement.setAttribute('aria-label', `Route map: ${stage.label} — ${stage.hint}`);
 };
 
 const renderMapLegend = (items = []) => {
@@ -363,6 +390,12 @@ const renderMapPreviewControls = (option, context = {}) => {
         endAccessibility
     }));
 
+    if (mapHowto && mapHowtoList) {
+        const howto = buildMapHowto(currentMapStages);
+        mapHowtoList.innerHTML = howto.map((line) => `<li>${escapeHtml(line)}</li>`).join('');
+        mapHowto.hidden = howto.length === 0;
+    }
+
     mapPreviewControls.innerHTML = '';
     const preferred = currentMapStages.some((stage) => stage.id === preferredPreview)
         ? preferredPreview
@@ -396,13 +429,6 @@ const renderMapPreviewControls = (option, context = {}) => {
     });
 
     applyMapPreview(preferred);
-
-    if (mapStageCaption && !API_KEY) {
-        const base = mapStageCaption.textContent || '';
-        if (!base.includes('Maps API key')) {
-            mapStageCaption.textContent = `${base} (Add a Google Maps API key for the most reliable map embeds.)`.trim();
-        }
-    }
 };
 
 const renderStationBreakdown = (stationBreakdown = []) => {
@@ -434,10 +460,6 @@ const renderStationBreakdown = (stationBreakdown = []) => {
 const renderLiveDepartures = (departures = [], isLive = false) => {
     if (!liveDeparturesContainer) return;
     liveDeparturesContainer.innerHTML = '';
-    const heading = document.createElement('h3');
-    heading.className = 'panel-title';
-    heading.textContent = 'Live departures near origin';
-    liveDeparturesContainer.appendChild(heading);
 
     if (!isLive || !departures.length) {
         const empty = document.createElement('p');
@@ -462,31 +484,23 @@ const renderLiveDepartures = (departures = [], isLive = false) => {
     liveDeparturesContainer.appendChild(list);
 };
 
+const showLiveConditions = (visible) => {
+    if (liveConditions) liveConditions.hidden = !visible;
+};
+
 const renderLiftStatus = (liveContext = {}) => {
     if (!liftStatusContainer) return;
     const liftChecks = liveContext.liftChecks || {};
     const liftMessages = liveContext.liftMessages || [];
-    const liftsAreLive = Boolean(liveContext.liftsAreLive);
     const hasChecks = Boolean(liftChecks.start || liftChecks.end || liftChecks.interchange);
 
     liftStatusContainer.innerHTML = '';
     if (!hasChecks) {
-        liftStatusContainer.hidden = true;
+        showLiveConditions(false);
         return;
     }
 
-    liftStatusContainer.hidden = false;
-    const heading = document.createElement('h3');
-    heading.className = 'panel-title';
-    heading.textContent = 'Are the lifts working?';
-    liftStatusContainer.appendChild(heading);
-
-    const note = document.createElement('p');
-    note.className = 'panel-note';
-    note.textContent = liftsAreLive
-        ? 'Live from TfL lift disruptions — still re-check before you travel.'
-        : 'Live lift feed is off. These are published-access guesses, not real-time lift status.';
-    liftStatusContainer.appendChild(note);
+    showLiveConditions(true);
 
     const list = document.createElement('ul');
     list.className = 'lift-check-list';
@@ -498,12 +512,14 @@ const renderLiftStatus = (liveContext = {}) => {
         if (!check) return;
         const item = document.createElement('li');
         item.className = `lift-check lift-${check.state || 'unknown'}`;
+        const detail = check.detail || '';
+        item.title = detail;
         item.innerHTML = `
             <div class="lift-check-top">
                 <strong>${escapeHtml(role)}: ${escapeHtml(check.station || 'Station')}</strong>
                 <span class="lift-state-chip">${escapeHtml(check.label || 'Unknown')}</span>
             </div>
-            <p>${escapeHtml(check.detail || '')}</p>
+            <p>${escapeHtml(detail)}</p>
         `;
         list.appendChild(item);
     });
@@ -663,12 +679,18 @@ const resetSelections = () => {
     stationBreakdownContainer.innerHTML = '';
     if (liftStatusContainer) {
         liftStatusContainer.innerHTML = '';
-        liftStatusContainer.hidden = true;
     }
-    liveDeparturesContainer.innerHTML = '';
+    if (liveDeparturesContainer) liveDeparturesContainer.innerHTML = '';
+    if (liveConditions) liveConditions.hidden = true;
     assistancePanel.innerHTML = '';
     mapPreviewControls.innerHTML = '';
     if (mapLegend) mapLegend.innerHTML = '';
+    if (mapHowto) mapHowto.hidden = true;
+    if (mapHowtoList) mapHowtoList.innerHTML = '';
+    if (mapStageActive) {
+        mapStageActive.hidden = true;
+        mapStageActive.textContent = '';
+    }
     if (mapStageCaption) {
         mapStageCaption.textContent = 'Plan a journey to see each access stage on the map.';
     }
@@ -686,6 +708,7 @@ const resetSelections = () => {
     setJourneyActive(false);
     mapService.reset();
     stationService.reset();
+    clearPlannerUrl();
 };
 
 const planRoute = async () => {
@@ -738,7 +761,6 @@ const planRoute = async () => {
         renderConfidenceHero(confidence);
         renderJourneyQuickSummary(start, end, confidence, planA);
         renderCoach(confidence);
-        renderScoredLegs(confidence.scoredSteps);
         renderPlanCard(planAPanel, planA, 'Plan A — Free Flow recommended', confidence.scoredSteps);
         renderPlanCard(planBPanel, planB, 'Plan B — if lifts fail');
         renderLearningPanel(recommendations, start, end);
@@ -759,7 +781,7 @@ const planRoute = async () => {
             strictPolicyGuidance.push(`Origin reroute: start via ${recommendations.liveContext.originHub || 'an accessible hub'} before joining the Tube.`);
         }
         if (recommendations.policy?.destinationTransferRequired) {
-            strictPolicyGuidance.push(`Destination transfer: leave rail at ${recommendations.liveContext.destinationHub || 'an accessible interchange'} and finish by bus or walking.`);
+            strictPolicyGuidance.push(`Bus finish required: leave rail at ${recommendations.liveContext.destinationHub || 'an accessible interchange'} and take a bus or short walk to ${end}. Do not rely on street access at ${end}.`);
         }
 
         renderGuidanceList([
@@ -790,6 +812,7 @@ const planRoute = async () => {
         overlay.classList.add('hidden');
         saveRecent(start, end);
         buildShareText(start, end, confidence, planA, planB);
+        syncUrlFromUi({ plan: true, replace: true });
         journeyCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
         handleError(error, ErrorTypes.NETWORK);
@@ -823,8 +846,47 @@ const setupProfileListeners = () => {
     ['profile-wheelchair', 'profile-no-escalators', 'profile-ramp', 'profile-max-walk'].forEach((id) => {
         document.getElementById(id)?.addEventListener('change', () => {
             persistProfileFromForm();
+            syncUrlFromUi({ plan: Boolean(latestPlanContext) });
         });
     });
+};
+
+const applyUrlState = (state, { autoPlan = false } = {}) => {
+    if (!state) return false;
+
+    if (state.profile) {
+        currentProfile = saveAccessProfile({
+            wheelchair: Boolean(state.profile.wheelchair),
+            noEscalators: Boolean(state.profile.noEscalators),
+            rampNeeded: Boolean(state.profile.rampNeeded),
+            maxWalkMins: state.profile.maxWalkMins || currentProfile.maxWalkMins || 10
+        });
+        writeProfileToForm(currentProfile);
+    }
+
+    if (stepFreeFilter && state.stepFree !== null && state.stepFree !== undefined) {
+        stepFreeFilter.checked = Boolean(state.stepFree);
+    }
+
+    if (state.from || state.to) {
+        applyJourneyPair(state.from || '', state.to || '');
+    }
+
+    if (autoPlan && state.plan && state.from && state.to) {
+        planRoute();
+        return true;
+    }
+
+    if (state.from || state.to || state.profile || state.stepFree) {
+        syncUrlFromUi({ plan: false });
+    }
+    return false;
+};
+
+const restoreFromUrl = () => {
+    const state = readPlannerUrl(stationService.stationData);
+    if (!state.hasQuery) return;
+    applyUrlState(state, { autoPlan: true });
 };
 
 const setupEventListeners = () => {
@@ -845,10 +907,12 @@ const setupEventListeners = () => {
         const start = startCombobox?.getValue() || '';
         const end = endCombobox?.getValue() || '';
         applyJourneyPair(end, start);
+        syncUrlFromUi({ plan: Boolean(latestPlanContext && end && start) });
     });
     stepFreeFilter?.addEventListener('change', () => {
         startCombobox?.renderOptions(document.getElementById('start-station-input').value);
         endCombobox?.renderOptions(document.getElementById('end-station-input').value);
+        syncUrlFromUi({ plan: Boolean(latestPlanContext) });
     });
     copyJourneyButton?.addEventListener('click', async () => {
         if (!latestJourneyText) return;
@@ -879,6 +943,14 @@ const setupEventListeners = () => {
         event.preventDefault();
         planRoute();
     });
+    window.addEventListener('popstate', () => {
+        const state = readPlannerUrl(stationService.stationData);
+        if (!state.from && !state.to) {
+            resetSelections();
+            return;
+        }
+        applyUrlState(state, { autoPlan: true });
+    });
     setupProfileListeners();
     listenersInitialized = true;
 };
@@ -892,7 +964,11 @@ export const fetchTFL = async () => {
         setupComboboxes();
         renderExamples();
         renderRecent();
-        await mapService.initialize(document.getElementById('map'));
+        await mapService.initialize(
+            document.getElementById('map'),
+            document.getElementById('open-external-map')
+        );
+        restoreFromUrl();
     } catch (error) {
         alert(`Failed to load station data. Error: ${error.message}`);
     } finally {

@@ -62,9 +62,16 @@ export const shareLocality = (start, end) => {
 export const shouldPreferSurfaceRoute = (start, end, startAccessibility, endAccessibility, memory) => {
     if (isLearnedSurfacePair(start, end, memory)) return true;
 
+    if (!shareLocality(start, end)) return false;
+
     const bothStreetBlocked = startAccessibility === 'None' && endAccessibility === 'None';
     const bothConstrained = ['None', 'Partial'].includes(startAccessibility)
         && ['None', 'Partial'].includes(endAccessibility);
-    if (!(bothStreetBlocked || bothConstrained)) return false;
-    return shareLocality(start, end);
+    if (bothStreetBlocked || bothConstrained) return true;
+
+    // Local hop onto (or off) a nearby Full station — bus/walk beats Tube via the same hub.
+    // e.g. Clapham High Street → Clapham Junction.
+    const ontoNearbyFull = ['None', 'Partial'].includes(startAccessibility) && endAccessibility === 'Full';
+    const offNearbyFull = startAccessibility === 'Full' && ['None', 'Partial'].includes(endAccessibility);
+    return ontoNearbyFull || offNearbyFull;
 };

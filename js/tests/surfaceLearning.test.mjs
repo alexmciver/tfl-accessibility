@@ -23,6 +23,10 @@ assert.equal(
     true
 );
 assert.equal(
+    shouldPreferSurfaceRoute('Clapham High Street', 'Clapham Junction', 'None', 'Full'),
+    true
+);
+assert.equal(
     shouldPreferSurfaceRoute('East Acton', 'East Finchley', 'None', 'None'),
     false
 );
@@ -55,6 +59,25 @@ assert.equal(
 assert.match(decodeURIComponent(result.recommended.mapUrl), /Clapham Common/);
 assert.match(decodeURIComponent(result.recommended.mapUrl), /Clapham High Street/);
 assert.ok(isLearnedSurfacePair('Clapham Common', 'Clapham High Street'));
+
+const localOntoFull = await buildDynamicRecommendations({
+    apiKey: '',
+    start: 'Clapham High Street',
+    end: 'Clapham Junction',
+    startAccessibility: 'None',
+    endAccessibility: 'Full',
+    profile: { maxWalkMins: 10 }
+});
+assert.equal(localOntoFull.policy.preferSurfaceRoute, true);
+assert.equal(localOntoFull.recommended.surfaceRoute, true);
+assert.match(decodeURIComponent(localOntoFull.recommended.mapUrl), /Clapham High Street/);
+assert.match(decodeURIComponent(localOntoFull.recommended.mapUrl), /Clapham Junction/);
+assert.equal(
+    decodeURIComponent(localOntoFull.recommended.mapUrl).includes('saddr=Clapham Junction')
+        && decodeURIComponent(localOntoFull.recommended.mapUrl).includes('daddr=Clapham Junction'),
+    false,
+    'Must not collapse both ends to Clapham Junction'
+);
 
 // Distant false-positive must not surface-first or auto-learn.
 clearRouteMemory();

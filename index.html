@@ -7,12 +7,13 @@
   <meta name="description" content="Free Flow Routes is the step-free journey planner for London: search stations, compare accessible routes, and follow clear interchange guidance.">
   <meta name="theme-color" content="#0b1f3a">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; script-src 'self'; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; frame-src https://www.google.com https://maps.google.com https://*.google.com https://*.google.co.uk; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://api.tfl.gov.uk;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; script-src 'self'; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; frame-src 'none'; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://api.tfl.gov.uk https://*.tile.openstreetmap.org https://router.project-osrm.org;">
   <title>Free Flow Routes | Best step-free journeys in London</title>
   <link rel="icon" href="assets/images/favicon.ico" sizes="any">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/vendor/leaflet.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -47,13 +48,8 @@
 
   <main id="main-content">
     <section class="hero" aria-labelledby="hero-heading">
-      <p class="hero-kicker" id="hero-heading">Free Flow Routes</p>
-      <p class="hero-lead">Not just a step-free route — Free Flow cross-checks published station access, corrects TfL street-access gaps, and keeps Plan B ready if lifts fail.</p>
-      <div class="hero-trust" aria-label="What this planner provides">
-        <span class="trust-chip">Published access as hard gate</span>
-        <span class="trust-chip">Corrects TfL street-access gaps</span>
-        <span class="trust-chip">Plan B when lifts fail</span>
-      </div>
+      <h1 class="hero-kicker" id="hero-heading">Free Flow Routes</h1>
+      <p class="hero-lead">Step-free journey planning that treats published station access as the hard gate — and keeps Plan B ready when lifts fail.</p>
     </section>
 
     <section class="profile-card" aria-labelledby="profile-heading">
@@ -88,7 +84,7 @@
     </section>
 
     <section class="planner-card" aria-labelledby="planner-heading">
-      <h1 id="planner-heading">Plan an accessible journey</h1>
+      <h2 id="planner-heading">Plan an accessible journey</h2>
       <p class="planner-intro">Type a station name, review access level, then get a confidence-scored route with a contingency.</p>
 
       <form id="planner-form" class="planner-form" autocomplete="off">
@@ -150,33 +146,52 @@
 
       <div id="degraded-banner" class="degraded-banner" hidden></div>
 
-      <div id="access-score" class="access-score confidence-hero" hidden></div>
-      <div id="lift-status" class="lift-status" hidden aria-live="polite"></div>
-      <div id="journey-quick-summary" class="journey-quick-summary">
-        <p>Set your profile, choose two stations, and get Plan A with certainty on every leg — plus Plan B if lifts fail.</p>
-      </div>
-      <p id="scenario-fired" class="scenario-fired"></p>
-      <p id="route-recommendation" class="route-recommendation">Your guidance will appear here after you plan a route.</p>
-      <p id="route-meta" class="route-meta"></p>
-
-      <div id="coach-panel" class="coach-panel" hidden></div>
-      <div id="learning-panel" class="learning-panel" hidden></div>
-      <div id="journey-timeline" class="journey-timeline" aria-label="Journey timeline"></div>
-
-      <div class="journey-grid confidence-grid">
-        <div class="journey-main">
-          <div id="plan-a-panel" class="plan-panel plan-a"></div>
-          <div id="plan-b-panel" class="plan-panel plan-b"></div>
-          <ul id="accessibility-guidance" class="guidance-list"></ul>
-          <div id="route-options" class="route-options" hidden></div>
-          <div id="route-steps" class="route-steps" hidden></div>
+      <div class="result-primary">
+        <div id="access-score" class="access-score confidence-hero" hidden></div>
+        <div class="result-headline">
+          <div id="journey-quick-summary" class="journey-quick-summary">
+            <p>Set your profile, choose two stations, and get Plan A with certainty on every leg — plus Plan B if lifts fail.</p>
+          </div>
+          <p id="route-recommendation" class="route-recommendation">Your guidance will appear here after you plan a route.</p>
+          <p id="scenario-fired" class="scenario-fired"></p>
+          <p id="route-meta" class="route-meta"></p>
         </div>
-        <aside class="journey-side">
-          <div id="assistance-panel" class="assistance-panel"></div>
-          <div id="station-breakdown" class="station-breakdown"></div>
-          <div id="live-departures" class="live-departures"></div>
-        </aside>
       </div>
+
+      <section id="live-conditions" class="live-conditions" hidden aria-label="Live lift and departure conditions">
+        <div class="live-conditions-header">
+          <h2 class="panel-title">Live lifts</h2>
+          <p class="panel-note">Check these before you leave — still re-check on the day.</p>
+        </div>
+        <div id="lift-status" class="lift-status" aria-live="polite"></div>
+        <details class="result-fold">
+          <summary>Live departures near origin</summary>
+          <div id="live-departures" class="live-departures"></div>
+        </details>
+      </section>
+
+      <div class="result-plan">
+        <div id="plan-a-panel" class="plan-panel plan-a"></div>
+        <div id="journey-timeline" class="journey-timeline" aria-label="Journey timeline" hidden></div>
+      </div>
+
+      <details class="result-fold result-fold-more">
+        <summary>Plan B, assistance &amp; more detail</summary>
+        <div class="result-more-grid">
+          <div class="result-more-main">
+            <div id="plan-b-panel" class="plan-panel plan-b"></div>
+            <div id="coach-panel" class="coach-panel" hidden></div>
+            <ul id="accessibility-guidance" class="guidance-list"></ul>
+            <div id="route-options" class="route-options" hidden></div>
+            <div id="route-steps" class="route-steps" hidden></div>
+            <div id="learning-panel" class="learning-panel" hidden></div>
+          </div>
+          <aside class="result-more-side">
+            <div id="assistance-panel" class="assistance-panel"></div>
+            <div id="station-breakdown" class="station-breakdown"></div>
+          </aside>
+        </div>
+      </details>
     </section>
 
     <section id="map-container" class="map-panel" aria-label="Route map">
@@ -185,13 +200,22 @@
           <h2 class="map-panel-title">Route map</h2>
           <p id="map-stage-caption" class="map-stage-caption">Plan a journey to see each access stage on the map.</p>
         </div>
-        <p class="map-panel-note">Each tab shows one stage. Read the caption before following the pin route.</p>
+        <a id="open-external-map" class="ghost-button map-external-link" target="_blank" rel="noopener noreferrer" hidden>Open in Google Maps</a>
       </div>
-      <div id="map-legend" class="map-legend" aria-label="Stations on this map"></div>
       <div id="map-preview-controls" class="map-preview-controls" role="tablist" aria-label="Map stages"></div>
+      <p id="map-stage-active" class="map-stage-active" hidden></p>
       <div class="map-frame-wrap">
-        <iframe id="map" title="Route map for the selected stage" style="border:0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <div id="map" role="img" aria-label="Route map for the selected stage"></div>
       </div>
+      <details class="result-fold map-fold">
+        <summary>Map legend &amp; how to read this map</summary>
+        <p class="map-panel-note">Tap the numbered stages in order. Each map shows only one part of the journey.</p>
+        <div id="map-howto" class="map-howto" hidden>
+          <ol id="map-howto-list" class="map-howto-list"></ol>
+        </div>
+        <div id="map-legend" class="map-legend" aria-label="Stations on this map"></div>
+      </details>
+      <p class="map-panel-foot"><a href="#live-conditions">Jump to live lifts</a></p>
     </section>
 
     <div id="loading-spinner" style="display: none;" aria-live="assertive">Loading stations…</div>
@@ -208,6 +232,7 @@
 
   <button type="button" id="back-to-top" aria-label="Back to top">↑ Back to top</button>
   <script src="js/runtime-keys.js"></script>
+  <script src="js/vendor/leaflet.js"></script>
   <script src="js/boot.js"></script>
 </body>
 </html>

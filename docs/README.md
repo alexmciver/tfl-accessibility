@@ -11,15 +11,25 @@ Accessible journey planner for London travel with step-free-aware routing guidan
 
 ## Run the App
 
+Open `index.html` directly (`file://`) or serve it:
+
 ```bash
 python3 -m http.server 8765
 ```
 
 Then open `http://localhost:8765`.
 
+Both modes use the same planner build (`js/tfl.bundle.js`), including live TfL lift status.
+
 - Journey planner: `index.html`
 - Accessibility guide: `accessibility.html`
 - GitHub Pages deploys automatically from `main` via `.github/workflows/githubpages.yml`
+
+After changing `js/tfl.js` or anything under `js/modules/`, rebuild the single browser bundle:
+
+```bash
+npm run build
+```
 
 ## Main Files
 
@@ -27,8 +37,8 @@ Then open `http://localhost:8765`.
 - `accessibility.html`: Accessibility explainer page.
 - `css/style.css`: App styling.
 - `data/stations.json`: Station accessibility dataset.
-- `js/tfl.js`: Planner logic for hosted mode.
-- `js/tfl.file.js`: Planner logic for `file://` mode.
+- `js/tfl.js`: Planner source (ES modules).
+- `js/tfl.bundle.js`: Single browser build used for `file://` and http(s).
 - `js/modules/routingEngine.js`: Scenario strategy generation and route option ranking.
 - `js/modules/liveContext.js`: Live or fallback context for lifts, hubs, and departures.
 - `js/modules/tflApi.js`: TfL Unified API client (lifts, StopPoint search, arrivals, journey planner).
@@ -84,7 +94,7 @@ To avoid exposing secrets, no API key is stored in source code.
 
 ## TfL Live Data Behaviour
 
-On hosted `http`/`https`, the planner calls the TfL Unified API for lift disruptions and step-free journey options. An app key is optional (higher rate limits) — register at https://api.tfl.gov.uk/:
+The planner always uses the same bundle and calls the TfL Unified API for lift disruptions (and related live context). An app key is optional (higher rate limits) — register at https://api.tfl.gov.uk/:
 
 ```html
 <script src="js/runtime-keys.js"></script>
@@ -94,9 +104,8 @@ On hosted `http`/`https`, the planner calls the TfL Unified API for lift disrupt
 </script>
 ```
 
-- The **Are the lifts working?** panel shows Working / Disruption / Unavailable using live TfL lift data.
-- On fetch failure or `file://`, the app keeps deterministic hub guidance, marks results as degraded, and clearly says live lift status is unavailable.
-- Live TfL calls are not used by `js/tfl.file.js`.
+- The **Live conditions** / **Are the lifts working?** panel shows Working / Disruption / Unavailable from live TfL lift data.
+- If the TfL request fails, the app keeps published-access guidance, marks results as degraded, and says live status could not be loaded.
 
 ## Security Notes
 

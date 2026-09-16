@@ -21,8 +21,8 @@ const constrained = buildMapStages({
 });
 
 assert.equal(constrained[0].id, 'via');
-assert.match(constrained[0].label, /Step-free Tube/i);
-assert.match(constrained[0].caption, /Do not start Tube at Aldgate/);
+assert.match(constrained[0].label, /Tube/i);
+assert.match(constrained[0].caption, /Before this map: bus or short walk from Aldgate|Do not start Tube at Aldgate/i);
 assert.ok(constrained[0].hint.includes(originHub.replace(/ Station, London$/i, '')));
 
 const legend = buildMapLegend({
@@ -44,6 +44,17 @@ const direct = buildMapStages({
     policy: { originRerouteRequired: false, destinationTransferRequired: false }
 });
 assert.equal(direct[0].id, 'full');
-assert.match(direct[0].caption, /street-to-train accessible/);
+assert.match(direct[0].caption, /street-to-train step-free|Full planned route/i);
 
+const busFinish = buildMapStages({
+    option,
+    start: 'Abbey Road',
+    end: 'Aldgate',
+    policy: { originRerouteRequired: false, destinationTransferRequired: true },
+    originHub: 'Abbey Road Station, London',
+    destinationHub: 'Tower Hill Station, London'
+});
+assert.match(busFinish[0].label, /Step-free Tube/i);
+assert.match(busFinish[1].label, /Bus finish/i);
+assert.match(busFinish[1].caption, /bus\/walk finish/i);
 console.log('mapStages tests passed');
