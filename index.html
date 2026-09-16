@@ -7,7 +7,7 @@
   <meta name="description" content="Free Flow Routes is the step-free journey planner for London: search stations, compare accessible routes, and follow clear interchange guidance.">
   <meta name="theme-color" content="#0b1f3a">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; script-src 'self'; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; frame-src 'none'; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://api.tfl.gov.uk https://*.tile.openstreetmap.org https://router.project-osrm.org;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; script-src 'self'; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com data:; frame-src https://www.google.com https://maps.google.com https://*.google.com https://*.google.co.uk; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://api.tfl.gov.uk https://*.tile.openstreetmap.org https://router.project-osrm.org;">
   <title>Free Flow Routes | Best step-free journeys in London</title>
   <link rel="icon" href="assets/images/favicon.ico" sizes="any">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -204,8 +204,12 @@
       </div>
       <div id="map-preview-controls" class="map-preview-controls" role="tablist" aria-label="Map stages"></div>
       <p id="map-stage-active" class="map-stage-active" hidden></p>
+      <p id="map-fallback-note" class="map-fallback-note" hidden>
+        Approximate corridor map. Add a Google Maps Embed API key in <code>js/runtime-keys.js</code> for full transit directions.
+      </p>
       <div class="map-frame-wrap">
-        <div id="map" role="img" aria-label="Route map for the selected stage"></div>
+        <iframe id="map-google" title="Google route map for the selected stage" style="border:0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen hidden></iframe>
+        <div id="map" role="img" aria-label="Route map for the selected stage" hidden></div>
       </div>
       <details class="result-fold map-fold">
         <summary>Map legend &amp; how to read this map</summary>
@@ -231,7 +235,7 @@
   </footer>
 
   <button type="button" id="back-to-top" aria-label="Back to top">↑ Back to top</button>
-  <script src="js/runtime-keys.js"></script>
+  <script src="js/runtime-keys.js?v=20260916"></script>
   <script src="js/vendor/leaflet.js"></script>
   <script src="js/boot.js"></script>
 </body>

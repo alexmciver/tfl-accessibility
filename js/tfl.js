@@ -2,7 +2,7 @@ import { StationService } from './modules/stations.js';
 import { MapService } from './modules/map.js';
 import { handleError, ErrorTypes } from './utils/errorHandler.js';
 import { initializeDarkMode } from './modules/darkMode.js';
-import { API_KEY } from './config.js';
+import { getGoogleMapsApiKey } from './config.js';
 import { buildDynamicRecommendations } from './modules/routingEngine.js';
 import { StationCombobox, getAccessMeta } from './modules/stationSearch.js';
 import {
@@ -47,6 +47,9 @@ const liveDeparturesContainer = document.getElementById('live-departures');
 const assistancePanel = document.getElementById('assistance-panel');
 const mapPreviewControls = document.getElementById('map-preview-controls');
 const mapElement = document.getElementById('map');
+const mapGoogleFrame = document.getElementById('map-google');
+const mapFallbackNote = document.getElementById('map-fallback-note');
+const mapExternalLink = document.getElementById('open-external-map');
 const mapStageCaption = document.getElementById('map-stage-caption');
 const mapLegend = document.getElementById('map-legend');
 const mapHowto = document.getElementById('map-howto');
@@ -286,7 +289,9 @@ const applyMapPreview = (previewMode) => {
         mapStageActive.hidden = false;
         mapStageActive.textContent = `Now showing: ${stage.label} — ${stage.why || stage.hint}`;
     }
-    if (mapElement) mapElement.setAttribute('aria-label', `Route map: ${stage.label} — ${stage.hint}`);
+    const mapLabel = `Route map: ${stage.label} — ${stage.hint}`;
+    if (mapElement) mapElement.setAttribute('aria-label', mapLabel);
+    if (mapGoogleFrame) mapGoogleFrame.title = mapLabel;
 };
 
 const renderMapLegend = (items = []) => {
@@ -723,7 +728,7 @@ const planRoute = async () => {
 
     try {
         const recommendations = await buildDynamicRecommendations({
-            apiKey: API_KEY,
+            apiKey: getGoogleMapsApiKey(),
             start,
             end,
             startAccessibility,
@@ -964,10 +969,12 @@ export const fetchTFL = async () => {
         setupComboboxes();
         renderExamples();
         renderRecent();
-        await mapService.initialize(
-            document.getElementById('map'),
-            document.getElementById('open-external-map')
-        );
+        await mapService.initialize({
+            googleFrame: mapGoogleFrame,
+            leafletHost: mapElement,
+            externalLink: mapExternalLink,
+            fallbackNote: mapFallbackNote
+        });
         restoreFromUrl();
     } catch (error) {
         alert(`Failed to load station data. Error: ${error.message}`);

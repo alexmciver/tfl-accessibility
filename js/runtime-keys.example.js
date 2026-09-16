@@ -6,7 +6,10 @@
  * https://api.tfl.gov.uk/
  *
  * Set FREEFLOW_TFL_LIVE = 0 to force degraded (offline) guidance in the browser.
- * Set FREEFLOW_GOOGLE_MAPS_API_KEY for reliable map embeds (keyless fallback is fragile).
+ * Set FREEFLOW_GOOGLE_MAPS_API_KEY for Google Maps Embed directions
+ * (Maps Embed API + billing enabled). Without it the planner falls back
+ * to an approximate OSM map — Google keyless embeds are blocked (403).
+ * https://developers.google.com/maps/documentation/embed/get-api-key
  */
 globalThis.FREEFLOW_TFL_APP_KEY = '';
 globalThis.FREEFLOW_GOOGLE_MAPS_API_KEY = '';

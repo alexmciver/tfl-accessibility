@@ -1,6 +1,7 @@
 (() => {
     const script = document.createElement('script');
-    // One planner build for file:// and http(s) — same live lifts, maps, and guidance.
+    // Keep planner boot ordered after runtime-keys (async=false).
     script.src = 'js/tfl.bundle.js';
+    script.async = false;
     document.body.appendChild(script);
 })();

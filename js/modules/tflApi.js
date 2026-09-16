@@ -1,4 +1,4 @@
-import { TFL_APP_KEY } from '../config.js';
+import { getTflAppKey } from '../config.js';
 import { stationCoords } from '../data/stationCoords.js';
 
 const API_BASE = 'https://api.tfl.gov.uk';
@@ -12,7 +12,7 @@ const buildUrl = (path, params = {}) => {
         if (value === undefined || value === null || value === '') return;
         url.searchParams.set(key, value);
     });
-    if (TFL_APP_KEY) url.searchParams.set('app_key', TFL_APP_KEY);
+    if (getTflAppKey()) url.searchParams.set('app_key', getTflAppKey());
     return url.toString();
 };
 
@@ -251,5 +251,5 @@ export const isTflLiveEnabled = () => {
         if (flag === 0 || flag === '0' || flag === false) return false;
         return true;
     }
-    return Boolean(TFL_APP_KEY);
+    return Boolean(getTflAppKey());
 };
